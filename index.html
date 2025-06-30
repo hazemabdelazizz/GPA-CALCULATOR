@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Custom GPA Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f7fa;
+      padding: 2rem;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+    }
+    input, select {
+      padding: 0.5rem;
+      margin-bottom: 1rem;
+      width: 100%;
+    }
+    button {
+      padding: 0.7rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+      width: 100%;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 2rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.5rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1>Custom GPA Calculator</h1>
+  <div>
+    <select id="course">
+      <option value="">-- Select or type course --</option>
+      <option value="Anatomy">Anatomy</option>
+      <option value="Biochem">Biochem</option>
+      <option value="Genetics">Genetics</option>
+      <option value="Physiology">Physiology</option>
+      <option value="Histology">Histology</option>
+      <option value="MSK1">MSK1</option>
+      <option value="Neuro">Neuro</option>
+      <option value="Pharmacology">Pharmacology</option>
+      <option value="Pathology">Pathology</option>
+      <option value="Haematology">Haematology</option>
+    </select>
+    <input type="text" id="customCourse" placeholder="Or type a new course name" />
+    <input type="number" id="credits" placeholder="Credit Hours" min="0" />
+    <select id="grade">
+      <option value="A+">A+</option>
+      <option value="A">A</option>
+      <option value="B+">B+</option>
+      <option value="B">B</option>
+      <option value="C+">C+</option>
+      <option value="C">C</option>
+      <option value="D">D</option>
+      <option value="F">F</option>
+    </select>
+    <button onclick="addCourse()">Add Course</button>
+  </div>
+
+  <table id="courses">
+    <thead>
+      <tr>
+        <th>Course</th>
+        <th>Credit Hours</th>
+        <th>Grade</th>
+        <th>GPA Points</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <h2 id="gpaDisplay"></h2>
+
+  <script>
+    const gpaScale = {
+      'A+': 4.00,
+      'A': 3.67,
+      'B+': 3.33,
+      'B': 3.00,
+      'C+': 2.67,
+      'C': 2.33,
+      'D': 2.00,
+      'F': 0.00
+    };
+
+    let courses = JSON.parse(localStorage.getItem('courses')) || [];
+
+    function saveCourses() {
+      localStorage.setItem('courses', JSON.stringify(courses));
+    }
+
+    function addCourse() {
+      const courseDropdown = document.getElementById('course');
+      const customCourse = document.getElementById('customCourse').value.trim();
+      const credits = parseFloat(document.getElementById('credits').value);
+      const grade = document.getElementById('grade').value;
+
+      let course = customCourse || courseDropdown.value;
+
+      if (!course || isNaN(credits) || credits <= 0) {
+        alert("Please enter a valid course name and credit hours.");
+        return;
+      }
+
+      courses.push({ course, credits, grade, points: gpaScale[grade] });
+      saveCourses();
+      updateTable();
+      updateGPA();
+      document.getElementById('course').value = '';
+      document.getElementById('customCourse').value = '';
+      document.getElementById('credits').value = '';
+    }
+
+    function updateTable() {
+      const tbody = document.querySelector('#courses tbody');
+      tbody.innerHTML = '';
+      courses.forEach(c => {
+        const row = `<tr><td>${c.course}</td><td>${c.credits}</td><td>${c.grade}</td><td>${c.points.toFixed(2)}</td></tr>`;
+        tbody.innerHTML += row;
+      });
+    }
+
+    function updateGPA() {
+      const totalQualityPoints = courses.reduce((acc, c) => acc + (c.credits * c.points), 0);
+      const totalCredits = courses.reduce((acc, c) => acc + c.credits, 0);
+      const gpa = totalCredits ? (totalQualityPoints / totalCredits).toFixed(2) : 0;
+      document.getElementById('gpaDisplay').innerText = `Cumulative GPA: ${gpa}`;
+    }
+
+    // Load stored data on page load
+    window.onload = () => {
+      updateTable();
+      updateGPA();
+    }
+  </script>
+</body>
+</html>
