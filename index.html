@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MTI MED (1st YEAR) GPA Calculator</title>
+  <title>MTI MED (1st YEAR) GPA CALCULATOR</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -109,13 +109,15 @@
     ];
 
     function createTableRow(course, semesterIndex) {
-      const gradeOptions = Object.keys(gpaScale).map(g => `<option value="${g}">${g}</option>`).join('');
+      const savedGrades = JSON.parse(localStorage.getItem('grades') || '{}');
+      const savedGrade = savedGrades[`${semesterIndex}-${course.name}`] || '';
+      const gradeOptions = Object.keys(gpaScale).map(g => `<option value="${g}" ${savedGrade === g ? 'selected' : ''}>${g}</option>`).join('');
       return `
         <tr>
           <td>${course.name}</td>
           <td>${course.credits}</td>
           <td>
-            <select onchange="updateGPA()" data-semester="${semesterIndex}" data-name="${course.name}" data-credits="${course.credits}">
+            <select onchange="saveAndUpdateGPA(this)" data-semester="${semesterIndex}" data-name="${course.name}" data-credits="${course.credits}">
               <option value="">--</option>
               ${gradeOptions}
             </select>
@@ -126,6 +128,7 @@
     function populateTables() {
       document.getElementById('s1-table').innerHTML = semester1Courses.map(c => createTableRow(c, 1)).join('');
       document.getElementById('s2-table').innerHTML = semester2Courses.map(c => createTableRow(c, 2)).join('');
+      updateGPA();
     }
 
     function calculateGPAFromSelects(semesterIndex) {
@@ -140,6 +143,16 @@
         }
       });
       return totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+    }
+
+    function saveAndUpdateGPA(selectElement) {
+      const grade = selectElement.value;
+      const semester = selectElement.dataset.semester;
+      const name = selectElement.dataset.name;
+      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
+      grades[`${semester}-${name}`] = grade;
+      localStorage.setItem('grades', JSON.stringify(grades));
+      updateGPA();
     }
 
     function updateGPA() {
