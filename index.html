@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MTI MED GPA Calculator</title>
+  <title>MTI MED (ACADEMIC) GPA Calculator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -38,7 +38,7 @@
   </style>
 </head>
 <body>
-  <h1>MTI MED GPA Calculator</h1><label for="yearSelector">Select Academic Year:</label> <select id="yearSelector" onchange="switchYear()"> <option value="1">First Year</option> <option value="2">Second Year</option> <option value="3">Third Year</option> </select>
+  <h1>MTI MED (ACADEMIC) GPA Calculator</h1><label for="yearSelector">Select Academic Year:</label> <select id="yearSelector" onchange="switchYear()"> <option value="1">First Year</option> <option value="2">Second Year</option> <option value="3">Third Year</option> </select>
 
   <div id="yearContainer"></div>  <h2 id="cgpaDisplay"></h2>  <script>
     const gpaScale = {
@@ -92,6 +92,7 @@
           { name: 'Musculoskeletal 3', credits: 5 },
           { name: 'Endocrine', credits: 5 },
           { name: 'Psychology 2', credits: 1 },
+          { name: 'ECE IV', credits: 1 },
         ]},
       ]
     };
@@ -172,21 +173,25 @@
           totalPoints += gpaScale[grade] * credits;
         }
       });
-      return totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+      return [totalPoints, totalCredits];
     }
 
     function updateGPA() {
       let allSelects = [];
+      let totalPoints = 0;
+      let totalCredits = 0;
       Object.keys(courseData).forEach(year => {
         courseData[year].forEach((sem, i) => {
           const selects = document.querySelectorAll(`select[data-year='${year}'][data-semester='${i + 1}']`);
-          const gpa = calculateGPA(Array.from(selects));
+          const [semPoints, semCredits] = calculateGPA(Array.from(selects));
+          const gpa = semCredits ? (semPoints / semCredits).toFixed(2) : '0.00';
           const gpaDisplay = document.getElementById(`gpa-${year}-${i + 1}`);
           if (gpaDisplay) gpaDisplay.innerText = `Semester GPA: ${gpa}`;
-          allSelects = allSelects.concat(Array.from(selects));
+          totalPoints += semPoints;
+          totalCredits += semCredits;
         });
       });
-      const cgpa = calculateGPA(allSelects);
+      const cgpa = totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
       document.getElementById('cgpaDisplay').innerText = `Cumulative GPA (CGPA): ${cgpa}`;
     }
 
