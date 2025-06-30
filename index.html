@@ -9,10 +9,10 @@
       font-family: Arial, sans-serif;
       background-color: #f5f7fa;
       padding: 2rem;
-      max-width: 600px;
+      max-width: 900px;
       margin: auto;
     }
-    h1 {
+    h1, h2 {
       text-align: center;
     }
     input, select {
@@ -27,38 +27,49 @@
       border: none;
       cursor: pointer;
       width: 100%;
+      margin-bottom: 2rem;
     }
     table {
       width: 100%;
       border-collapse: collapse;
-      margin-top: 2rem;
+      margin-top: 1rem;
     }
     th, td {
       border: 1px solid #ccc;
       padding: 0.5rem;
       text-align: center;
     }
+    .semester {
+      margin-top: 3rem;
+    }
   </style>
 </head>
 <body>
   <h1>Custom GPA Calculator</h1>
-  <div>
-    <select id="course">
-      <option value="">-- Select or type course --</option>
-      <option value="Anatomy">Anatomy</option>
-      <option value="Biochem">Biochem</option>
-      <option value="Genetics">Genetics</option>
-      <option value="Physiology">Physiology</option>
-      <option value="Histology">Histology</option>
-      <option value="MSK1">MSK1</option>
-      <option value="Neuro">Neuro</option>
-      <option value="Pharmacology">Pharmacology</option>
-      <option value="Pathology">Pathology</option>
-      <option value="Haematology">Haematology</option>
+
+  <div class="semester">
+    <h2>First Semester GPA</h2>
+    <table id="semester1">
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Credit Hours</th>
+          <th>Grade</th>
+          <th>GPA Points</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <select id="s1-course">
+      <option value="">-- Select Course --</option>
+      <option value="Anatomy">Anatomy (3 hrs)</option>
+      <option value="Physiology">Physiology (2 hrs)</option>
+      <option value="Histology">Histology (2 hrs)</option>
+      <option value="Biochemistry">Biochemistry (4 hrs)</option>
+      <option value="Immunology">Immunology (2 hrs)</option>
+      <option value="Genetics">Genetics (2 hrs)</option>
     </select>
-    <input type="text" id="customCourse" placeholder="Or type a new course name" />
-    <input type="number" id="credits" placeholder="Credit Hours" min="0" />
-    <select id="grade">
+    <select id="s1-grade">
       <option value="A+">A+</option>
       <option value="A">A</option>
       <option value="B+">B+</option>
@@ -68,23 +79,47 @@
       <option value="D">D</option>
       <option value="F">F</option>
     </select>
-    <button onclick="addCourse()">Add Course</button>
+    <button onclick="addCourse(1)">Add Course to Semester 1</button>
+    <h3 id="s1-gpa"></h3>
   </div>
 
-  <table id="courses">
-    <thead>
-      <tr>
-        <th>Course</th>
-        <th>Credit Hours</th>
-        <th>Grade</th>
-        <th>GPA Points</th>
-      </tr>
-    </thead>
-    <tbody>
-    </tbody>
-  </table>
+  <div class="semester">
+    <h2>Second Semester GPA</h2>
+    <table id="semester2">
+      <thead>
+        <tr>
+          <th>Course</th>
+          <th>Credit Hours</th>
+          <th>Grade</th>
+          <th>GPA Points</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+    <select id="s2-course">
+      <option value="">-- Select Course --</option>
+      <option value="General Pathology">General Pathology (3 hrs)</option>
+      <option value="General Pharmacology">General Pharmacology (2 hrs)</option>
+      <option value="Hematology">Hematology (4 hrs)</option>
+      <option value="ECE">ECE (1 hr)</option>
+      <option value="Musculoskeletal1">Musculoskeletal1 (5 hrs)</option>
+      <option value="Neuroscience">Neuroscience (2 hrs)</option>
+    </select>
+    <select id="s2-grade">
+      <option value="A+">A+</option>
+      <option value="A">A</option>
+      <option value="B+">B+</option>
+      <option value="B">B</option>
+      <option value="C+">C+</option>
+      <option value="C">C</option>
+      <option value="D">D</option>
+      <option value="F">F</option>
+    </select>
+    <button onclick="addCourse(2)">Add Course to Semester 2</button>
+    <h3 id="s2-gpa"></h3>
+  </div>
 
-  <h2 id="gpaDisplay"></h2>
+  <h2 id="cgpaDisplay"></h2>
 
   <script>
     const gpaScale = {
@@ -98,51 +133,94 @@
       'F': 0.00
     };
 
-    let courses = JSON.parse(localStorage.getItem('courses')) || [];
+    const creditHours = {
+      'Anatomy': 3,
+      'Physiology': 2,
+      'Histology': 2,
+      'Biochemistry': 4,
+      'Immunology': 2,
+      'Genetics': 2,
+      'General Pathology': 3,
+      'General Pharmacology': 2,
+      'Hematology': 4,
+      'ECE': 1,
+      'Musculoskeletal1': 5,
+      'Neuroscience': 2
+    };
 
-    function saveCourses() {
-      localStorage.setItem('courses', JSON.stringify(courses));
+    let semester1 = JSON.parse(localStorage.getItem('semester1')) || [];
+    let semester2 = JSON.parse(localStorage.getItem('semester2')) || [];
+
+    function saveSemesters() {
+      localStorage.setItem('semester1', JSON.stringify(semester1));
+      localStorage.setItem('semester2', JSON.stringify(semester2));
     }
 
-    function addCourse() {
-      const courseDropdown = document.getElementById('course');
-      const customCourse = document.getElementById('customCourse').value.trim();
-      const credits = parseFloat(document.getElementById('credits').value);
-      const grade = document.getElementById('grade').value;
+    function addCourse(semester) {
+      const courseId = semester === 1 ? 's1-course' : 's2-course';
+      const gradeId = semester === 1 ? 's1-grade' : 's2-grade';
+      const tableId = semester === 1 ? 'semester1' : 'semester2';
 
-      let course = customCourse || courseDropdown.value;
+      const course = document.getElementById(courseId).value;
+      const grade = document.getElementById(gradeId).value;
 
-      if (!course || isNaN(credits) || credits <= 0) {
-        alert("Please enter a valid course name and credit hours.");
+      if (!course || !grade || !creditHours[course]) {
+        alert("Please select a valid course and grade.");
         return;
       }
 
-      courses.push({ course, credits, grade, points: gpaScale[grade] });
-      saveCourses();
+      const entry = {
+        course,
+        credits: creditHours[course],
+        grade,
+        points: gpaScale[grade]
+      };
+
+      if (semester === 1) {
+        semester1.push(entry);
+      } else {
+        semester2.push(entry);
+      }
+
+      saveSemesters();
       updateTable();
       updateGPA();
-      document.getElementById('course').value = '';
-      document.getElementById('customCourse').value = '';
-      document.getElementById('credits').value = '';
     }
 
     function updateTable() {
-      const tbody = document.querySelector('#courses tbody');
-      tbody.innerHTML = '';
-      courses.forEach(c => {
+      const s1body = document.querySelector('#semester1 tbody');
+      const s2body = document.querySelector('#semester2 tbody');
+      s1body.innerHTML = '';
+      s2body.innerHTML = '';
+
+      semester1.forEach(c => {
         const row = `<tr><td>${c.course}</td><td>${c.credits}</td><td>${c.grade}</td><td>${c.points.toFixed(2)}</td></tr>`;
-        tbody.innerHTML += row;
+        s1body.innerHTML += row;
+      });
+      semester2.forEach(c => {
+        const row = `<tr><td>${c.course}</td><td>${c.credits}</td><td>${c.grade}</td><td>${c.points.toFixed(2)}</td></tr>`;
+        s2body.innerHTML += row;
       });
     }
 
-    function updateGPA() {
+    function calculateGPA(courses) {
       const totalQualityPoints = courses.reduce((acc, c) => acc + (c.credits * c.points), 0);
       const totalCredits = courses.reduce((acc, c) => acc + c.credits, 0);
-      const gpa = totalCredits ? (totalQualityPoints / totalCredits).toFixed(2) : 0;
-      document.getElementById('gpaDisplay').innerText = `Cumulative GPA: ${gpa}`;
+      return totalCredits ? (totalQualityPoints / totalCredits).toFixed(2) : "0.00";
     }
 
-    // Load stored data on page load
+    function updateGPA() {
+      const gpa1 = calculateGPA(semester1);
+      const gpa2 = calculateGPA(semester2);
+
+      document.getElementById('s1-gpa').innerText = `Semester 1 GPA: ${gpa1}`;
+      document.getElementById('s2-gpa').innerText = `Semester 2 GPA: ${gpa2}`;
+
+      const totalCourses = [...semester1, ...semester2];
+      const cgpa = calculateGPA(totalCourses);
+      document.getElementById('cgpaDisplay').innerText = `Cumulative GPA (CGPA): ${cgpa}`;
+    }
+
     window.onload = () => {
       updateTable();
       updateGPA();
