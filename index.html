@@ -163,35 +163,46 @@
       updateGPA();
     }
 
-    function calculateGPA(selects) {
+    function calculateCGPAFromLocalStorage() {
+      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
       let totalCredits = 0, totalPoints = 0;
-      selects.forEach(sel => {
-        const grade = sel.value;
-        const credits = parseFloat(sel.dataset.credits);
-        if (grade && gpaScale[grade] !== undefined) {
-          totalCredits += credits;
-          totalPoints += gpaScale[grade] * credits;
-        }
-      });
-      return [totalPoints, totalCredits];
+
+      for (const year in courseData) {
+        courseData[year].forEach((semester, semIndex) => {
+          semester.courses.forEach(course => {
+            const key = `${year}-${semIndex + 1}-${course.name}`;
+            const grade = grades[key];
+            if (grade && gpaScale[grade] !== undefined) {
+              totalCredits += course.credits;
+              totalPoints += gpaScale[grade] * course.credits;
+            }
+          });
+        });
+      }
+
+      return totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
     }
 
     function updateGPA() {
-      let allSelects = [];
-      let totalPoints = 0;
-      let totalCredits = 0;
       Object.keys(courseData).forEach(year => {
         courseData[year].forEach((sem, i) => {
           const selects = document.querySelectorAll(`select[data-year='${year}'][data-semester='${i + 1}']`);
-          const [semPoints, semCredits] = calculateGPA(Array.from(selects));
-          const gpa = semCredits ? (semPoints / semCredits).toFixed(2) : '0.00';
+          let totalCredits = 0, totalPoints = 0;
+          selects.forEach(sel => {
+            const grade = sel.value;
+            const credits = parseFloat(sel.dataset.credits);
+            if (grade && gpaScale[grade] !== undefined) {
+              totalCredits += credits;
+              totalPoints += gpaScale[grade] * credits;
+            }
+          });
+          const gpa = totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
           const gpaDisplay = document.getElementById(`gpa-${year}-${i + 1}`);
           if (gpaDisplay) gpaDisplay.innerText = `Semester GPA: ${gpa}`;
-          totalPoints += semPoints;
-          totalCredits += semCredits;
         });
       });
-      const cgpa = totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+
+      const cgpa = calculateCGPAFromLocalStorage();
       document.getElementById('cgpaDisplay').innerText = `Cumulative GPA (CGPA): ${cgpa}`;
     }
 
