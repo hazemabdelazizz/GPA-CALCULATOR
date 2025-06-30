@@ -1,22 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MTI MED (1st YEAR) GPA CALCULATOR</title>
+  <title>MTI MED GPA Calculator</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background-color: #f5f7fa;
       padding: 2rem;
-      max-width: 900px;
+      max-width: 1000px;
       margin: auto;
     }
     h1, h2 {
       text-align: center;
     }
-    select {
-      padding: 0.4rem;
+    select, button {
+      padding: 0.5rem;
+      margin: 0.5rem 0;
       width: 100%;
     }
     table {
@@ -30,55 +30,17 @@
       text-align: center;
     }
     .semester {
-      margin-top: 3rem;
+      margin-top: 2rem;
     }
-    button {
-      padding: 0.7rem;
-      background-color: #007bff;
-      color: white;
-      border: none;
-      cursor: pointer;
-      width: 100%;
-      margin-top: 1rem;
+    .hidden {
+      display: none;
     }
   </style>
 </head>
 <body>
-  <h1>MTI MED (1st YEAR) GPA CALCULATOR</h1>
+  <h1>MTI MED GPA Calculator</h1><label for="yearSelector">Select Academic Year:</label> <select id="yearSelector" onchange="switchYear()"> <option value="1">First Year</option> <option value="2">Second Year</option> <option value="3">Third Year</option> </select>
 
-  <div class="semester">
-    <h2>First Semester GPA</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Course</th>
-          <th>Credit Hours</th>
-          <th>Grade</th>
-        </tr>
-      </thead>
-      <tbody id="s1-table"></tbody>
-    </table>
-    <h3 id="s1-gpa"></h3>
-  </div>
-
-  <div class="semester">
-    <h2>Second Semester GPA</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Course</th>
-          <th>Credit Hours</th>
-          <th>Grade</th>
-        </tr>
-      </thead>
-      <tbody id="s2-table"></tbody>
-    </table>
-    <h3 id="s2-gpa"></h3>
-  </div>
-
-  <h2 id="cgpaDisplay"></h2>
-
-  <script>
+  <div id="yearContainer"></div>  <h2 id="cgpaDisplay"></h2>  <script>
     const gpaScale = {
       'A+': 4.00,
       'A': 3.67,
@@ -90,49 +52,117 @@
       'F': 0.00
     };
 
-    const semester1Courses = [
-      { name: 'Anatomy', credits: 3 },
-      { name: 'Physiology', credits: 2 },
-      { name: 'Histology', credits: 2 },
-      { name: 'Biochemistry', credits: 4 },
-      { name: 'Immunology', credits: 2 },
-      { name: 'Genetics', credits: 2 },
-    ];
+    const courseData = {
+      1: [
+        { semester: 1, courses: [
+          { name: 'Anatomy', credits: 3 },
+          { name: 'Physiology', credits: 2 },
+          { name: 'Histology', credits: 2 },
+          { name: 'Biochemistry', credits: 4 },
+          { name: 'Immunology', credits: 2 },
+          { name: 'Genetics', credits: 2 },
+        ]},
+        { semester: 2, courses: [
+          { name: 'General Pathology', credits: 3 },
+          { name: 'General Pharmacology', credits: 2 },
+          { name: 'Hematology', credits: 4 },
+          { name: 'ECE', credits: 1 },
+          { name: 'Musculoskeletal1', credits: 5 },
+          { name: 'Neuroscience', credits: 2 },
+        ]},
+      ],
+      2: [
+        { semester: 1, courses: [
+          { name: 'Musculoskeletal 2', credits: 4 },
+          { name: 'Respiratory', credits: 5 },
+          { name: 'CVS', credits: 7 },
+          { name: 'Psychology 1', credits: 1 },
+          { name: 'ECE II', credits: 1 },
+        ]},
+        { semester: 2, courses: [
+          { name: 'GIT', credits: 7 },
+          { name: 'Urinary system', credits: 4 },
+          { name: 'Reproductive system', credits: 4 },
+          { name: 'ECE III', credits: 1 },
+        ]},
+      ],
+      3: [
+        { semester: 1, courses: [
+          { name: 'CNS', credits: 8 },
+          { name: 'Musculoskeletal 3', credits: 5 },
+          { name: 'Endocrine', credits: 5 },
+          { name: 'Psychology 2', credits: 1 },
+        ]},
+      ]
+    };
 
-    const semester2Courses = [
-      { name: 'General Pathology', credits: 3 },
-      { name: 'General Pharmacology', credits: 2 },
-      { name: 'Hematology', credits: 4 },
-      { name: 'ECE', credits: 1 },
-      { name: 'Musculoskeletal1', credits: 5 },
-      { name: 'Neuroscience', credits: 2 },
-    ];
-
-    function createTableRow(course, semesterIndex) {
-      const savedGrades = JSON.parse(localStorage.getItem('grades') || '{}');
-      const savedGrade = savedGrades[`${semesterIndex}-${course.name}`] || '';
-      const gradeOptions = Object.keys(gpaScale).map(g => `<option value="${g}" ${savedGrade === g ? 'selected' : ''}>${g}</option>`).join('');
-      return `
-        <tr>
-          <td>${course.name}</td>
-          <td>${course.credits}</td>
-          <td>
-            <select onchange="saveAndUpdateGPA(this)" data-semester="${semesterIndex}" data-name="${course.name}" data-credits="${course.credits}">
-              <option value="">--</option>
-              ${gradeOptions}
-            </select>
-          </td>
-        </tr>`;
+    function switchYear() {
+      const year = document.getElementById('yearSelector').value;
+      renderYear(year);
     }
 
-    function populateTables() {
-      document.getElementById('s1-table').innerHTML = semester1Courses.map(c => createTableRow(c, 1)).join('');
-      document.getElementById('s2-table').innerHTML = semester2Courses.map(c => createTableRow(c, 2)).join('');
+    function renderYear(year) {
+      const container = document.getElementById('yearContainer');
+      container.innerHTML = '';
+      const semesters = courseData[year];
+      semesters.forEach((sem, index) => {
+        const table = document.createElement('table');
+        const tbody = document.createElement('tbody');
+        sem.courses.forEach(course => {
+          const savedGrades = JSON.parse(localStorage.getItem('grades') || '{}');
+          const savedGrade = savedGrades[`${year}-${index + 1}-${course.name}`] || '';
+          const options = Object.keys(gpaScale).map(g => `<option value="${g}" ${savedGrade === g ? 'selected' : ''}>${g}</option>`).join('');
+          const row = `<tr>
+            <td>${course.name}</td>
+            <td>${course.credits}</td>
+            <td>
+              <select onchange="saveAndUpdateGPA(this)" data-year="${year}" data-semester="${index + 1}" data-name="${course.name}" data-credits="${course.credits}">
+                <option value="">--</option>
+                ${options}
+              </select>
+            </td>
+          </tr>`;
+          tbody.innerHTML += row;
+        });
+        table.innerHTML = `<thead><tr><th colspan="3">Year ${year} - Semester ${index + 1}</th></tr><tr><th>Course</th><th>Credits</th><th>Grade</th></tr></thead>`;
+        table.appendChild(tbody);
+        container.appendChild(table);
+
+        const clearBtn = document.createElement('button');
+        clearBtn.innerText = `Clear Semester ${index + 1}`;
+        clearBtn.onclick = () => clearSemester(year, index + 1);
+        container.appendChild(clearBtn);
+
+        const gpaHeader = document.createElement('h3');
+        gpaHeader.id = `gpa-${year}-${index + 1}`;
+        container.appendChild(gpaHeader);
+      });
       updateGPA();
     }
 
-    function calculateGPAFromSelects(semesterIndex) {
-      const selects = document.querySelectorAll(`select[data-semester='${semesterIndex}']`);
+    function clearSemester(year, semester) {
+      const selects = document.querySelectorAll(`select[data-year='${year}'][data-semester='${semester}']`);
+      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
+      selects.forEach(sel => {
+        sel.value = '';
+        delete grades[`${year}-${semester}-${sel.dataset.name}`];
+      });
+      localStorage.setItem('grades', JSON.stringify(grades));
+      updateGPA();
+    }
+
+    function saveAndUpdateGPA(selectElement) {
+      const grade = selectElement.value;
+      const year = selectElement.dataset.year;
+      const semester = selectElement.dataset.semester;
+      const name = selectElement.dataset.name;
+      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
+      grades[`${year}-${semester}-${name}`] = grade;
+      localStorage.setItem('grades', JSON.stringify(grades));
+      updateGPA();
+    }
+
+    function calculateGPA(selects) {
       let totalCredits = 0, totalPoints = 0;
       selects.forEach(sel => {
         const grade = sel.value;
@@ -145,39 +175,23 @@
       return totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
     }
 
-    function saveAndUpdateGPA(selectElement) {
-      const grade = selectElement.value;
-      const semester = selectElement.dataset.semester;
-      const name = selectElement.dataset.name;
-      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
-      grades[`${semester}-${name}`] = grade;
-      localStorage.setItem('grades', JSON.stringify(grades));
-      updateGPA();
-    }
-
     function updateGPA() {
-      const gpa1 = calculateGPAFromSelects(1);
-      const gpa2 = calculateGPAFromSelects(2);
-      document.getElementById('s1-gpa').innerText = `Semester 1 GPA: ${gpa1}`;
-      document.getElementById('s2-gpa').innerText = `Semester 2 GPA: ${gpa2}`;
-
-      const selects = document.querySelectorAll('select[data-semester]');
-      let totalCredits = 0, totalPoints = 0;
-      selects.forEach(sel => {
-        const grade = sel.value;
-        const credits = parseFloat(sel.dataset.credits);
-        if (grade && gpaScale[grade] !== undefined) {
-          totalCredits += credits;
-          totalPoints += gpaScale[grade] * credits;
-        }
+      let allSelects = [];
+      Object.keys(courseData).forEach(year => {
+        courseData[year].forEach((sem, i) => {
+          const selects = document.querySelectorAll(`select[data-year='${year}'][data-semester='${i + 1}']`);
+          const gpa = calculateGPA(Array.from(selects));
+          const gpaDisplay = document.getElementById(`gpa-${year}-${i + 1}`);
+          if (gpaDisplay) gpaDisplay.innerText = `Semester GPA: ${gpa}`;
+          allSelects = allSelects.concat(Array.from(selects));
+        });
       });
-      const cgpa = totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+      const cgpa = calculateGPA(allSelects);
       document.getElementById('cgpaDisplay').innerText = `Cumulative GPA (CGPA): ${cgpa}`;
     }
 
     window.onload = () => {
-      populateTables();
+      switchYear();
     };
-  </script>
-</body>
+  </script></body>
 </html>
