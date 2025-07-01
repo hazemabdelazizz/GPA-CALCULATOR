@@ -6,7 +6,8 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f5f7fa;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       padding: 2rem;
       max-width: 1000px;
       margin: auto;
@@ -35,10 +36,20 @@
     .hidden {
       display: none;
     }
+    :root {
+      --bg-color: #f5f7fa;
+      --text-color: #000;
+    }
+    .dark-mode {
+      --bg-color: #1e1e1e;
+      --text-color: #f5f5f5;
+    }
   </style>
 </head>
 <body>
   <h1>MTI MED (ACADEMIC) GPA Calculator</h1><label for="yearSelector">Select Academic Year:</label> <select id="yearSelector" onchange="switchYear()"> <option value="1">First Year</option> <option value="2">Second Year</option> <option value="3">Third Year</option> </select>
+
+<button onclick="toggleDarkMode()">Toggle Dark Mode</button> <button onclick="resetAllData()" style="background-color: crimson; color: white;">Reset All Data</button>
 
   <div id="yearContainer"></div>  <h2 id="cgpaDisplay"></h2>  <script>
     const gpaScale = {
@@ -75,7 +86,7 @@
         { semester: 1, courses: [
           { name: 'Musculoskeletal 2', credits: 4 },
           { name: 'Respiratory', credits: 5 },
-          { name: 'CVS', credits: 7 }, 
+          { name: 'CVS', credits: 7 },
           { name: 'ECE II', credits: 1 },
         ]},
         { semester: 2, courses: [
@@ -148,6 +159,18 @@
       });
       localStorage.setItem('grades', JSON.stringify(grades));
       updateGPA();
+    }
+
+    function resetAllData() {
+      if (confirm("Are you sure you want to reset all data?")) {
+        localStorage.removeItem('grades');
+        switchYear();
+        updateGPA();
+      }
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
     }
 
     function saveAndUpdateGPA(selectElement) {
