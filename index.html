@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -68,15 +69,38 @@
   </style>
 </head>
 <body>
-  <h1>MTI MED (ACADEMIC) GPA Calculator 🩺</h1><label for="yearSelector">Select Academic Year:</label> <select id="yearSelector" onchange="switchYear()"> <option value="1">First Year</option> <option value="2">Second Year</option> <option value="3">Third Year</option> </select>
+  <h1>MTI MED (ACADEMIC) GPA Calculator 🩺</h1>
+  <label for="yearSelector">Select Academic Year:</label>
+  <select id="yearSelector" onchange="switchYear()">
+    <option value="1">First Year</option>
+    <option value="2">Second Year</option>
+    <option value="3">Third Year</option>
+  </select>
 
-<button onclick="toggleDarkMode()">Toggle Dark Mode</button> <button onclick="resetAllData()" style="background-color: crimson; color: white;">Reset All Data</button>
+  <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
+  <button onclick="resetAllData()" style="background-color: crimson; color: white;">Reset All Data</button>
 
-  <div id="yearContainer"></div>  <h2 id="cgpaDisplay"></h2>  <a href="https://wa.me/201122876666?text=Hi%20I%20have%20feedback%20about%20the%20MTI%20MED%20GPA%20Calculator" class="whatsapp-float" target="_blank" title="Send Feedback via WhatsApp">
+  <div id="yearContainer"></div>
+  <h2 id="cgpaDisplay"></h2>
+
+  <a href="https://wa.me/201122876666?text=Hi%20I%20have%20feedback%20about%20the%20MTI%20MED%20GPA%20Calculator" class="whatsapp-float" target="_blank" title="Send Feedback via WhatsApp">
     🟩 <span>Send Feedback</span>
   </a>
 
   <script>
+    // Firebase Setup
+    const firebaseConfig = {
+      apiKey: "AIzaSyCb4SE2teLRIDEk3dY077a32xuPRuNlWr4",
+      authDomain: "mti-med-gpa-calc.firebaseapp.com",
+      projectId: "mti-med-gpa-calc",
+      storageBucket: "mti-med-gpa-calc.appspot.com",
+      messagingSenderId: "545061029336",
+      appId: "1:545061029336:web:7c73245baf0e3593639ead",
+      databaseURL: "https://mti-med-gpa-calc-default-rtdb.firebaseio.com"
+    };
+    const app = firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
     const gpaScale = {
       'A+': 4.00, 'A': 3.67, 'B+': 3.33,
       'B': 3.00, 'C+': 2.67, 'C': 2.33,
@@ -136,96 +160,13 @@
       ]
     };
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCb4SE2teLRIDEk3dY077a32xuPRuNlWr4",
-      authDomain: "mti-med-gpa-calc.firebaseapp.com",
-      databaseURL: "https://mti-med-gpa-calc-default-rtdb.firebaseio.com",
-      projectId: "mti-med-gpa-calc",
-      storageBucket: "mti-med-gpa-calc.appspot.com",
-      messagingSenderId: "545061029336",
-      appId: "1:545061029336:web:7c73245baf0e3593639ead"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    function switchYear() {
-      const year = document.getElementById('yearSelector').value;
-      renderYear(year);
-    }
-
-    function renderYear(year) {
-      const container = document.getElementById('yearContainer');
-      container.innerHTML = '';
-      const semesters = courseData[year];
-      semesters.forEach((sem, index) => {
-        const table = document.createElement('table');
-        const tbody = document.createElement('tbody');
-        sem.courses.forEach(course => {
-          const displayName = `${emojiMap[course.name] || ''} ${course.name}`;
-          const savedGrades = JSON.parse(localStorage.getItem('grades') || '{}');
-          const savedGrade = savedGrades[`${year}-${index + 1}-${course.name}`] || '';
-          const options = Object.keys(gpaScale).map(g => `<option value="${g}" ${savedGrade === g ? 'selected' : ''}>${g}</option>`).join('');
-          const row = `<tr>
-            <td>${displayName}</td>
-            <td>${course.credits}</td>
-            <td>
-              <select onchange="saveAndUpdateGPA(this)" data-year="${year}" data-semester="${index + 1}" data-name="${course.name}" data-credits="${course.credits}">
-                <option value="">--</option>
-                ${options}
-              </select>
-            </td>
-          </tr>`;
-          tbody.innerHTML += row;
-        });
-        table.innerHTML = `<thead><tr><th colspan="3">Year ${year} - Semester ${index + 1}</th></tr><tr><th>Course</th><th>Credits</th><th>Grade</th></tr></thead>`;
-        table.appendChild(tbody);
-        container.appendChild(table);
-
-        const clearBtn = document.createElement('button');
-        clearBtn.innerText = `Clear Semester ${index + 1}`;
-        clearBtn.onclick = () => clearSemester(year, index + 1);
-        container.appendChild(clearBtn);
-
-        const gpaHeader = document.createElement('h3');
-        gpaHeader.id = `gpa-${year}-${index + 1}`;
-        container.appendChild(gpaHeader);
+    function submitFirstYearGPA(sem1GPA, sem2GPA, cgpa) {
+      db.ref("submissions").push({
+        timestamp: Date.now(),
+        year1_sem1: parseFloat(sem1GPA),
+        year1_sem2: parseFloat(sem2GPA),
+        year1_cgpa: parseFloat(cgpa)
       });
-      updateGPA();
-    }
-
-    function clearSemester(year, semester) {
-      const selects = document.querySelectorAll(`select[data-year='${year}'][data-semester='${semester}']`);
-      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
-      selects.forEach(sel => {
-        sel.value = '';
-        delete grades[`${year}-${semester}-${sel.dataset.name}`];
-      });
-      localStorage.setItem('grades', JSON.stringify(grades));
-      updateGPA();
-    }
-
-    function resetAllData() {
-      if (confirm("Are you sure you want to reset all data?")) {
-        localStorage.removeItem('grades');
-        switchYear();
-        updateGPA();
-      }
-    }
-
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
-    }
-
-    function saveAndUpdateGPA(selectElement) {
-      const grade = selectElement.value;
-      const year = selectElement.dataset.year;
-      const semester = selectElement.dataset.semester;
-      const name = selectElement.dataset.name;
-      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
-      grades[`${year}-${semester}-${name}`] = grade;
-      localStorage.setItem('grades', JSON.stringify(grades));
-      updateGPA();
-      if (parseInt(year) === 1) trySubmitYear1();
     }
 
     function calculateCGPAFromLocalStorage() {
@@ -246,40 +187,104 @@
       return totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
     }
 
-    function trySubmitYear1() {
+    function calculateGPAFor(year, semester) {
       const grades = JSON.parse(localStorage.getItem('grades') || '{}');
-      const year1Courses = courseData[1].flatMap((sem, i) => sem.courses.map(c => `${1}-${i + 1}-${c.name}`));
-      if (year1Courses.every(key => grades[key])) {
-        const gpa = calculateCGPAFromLocalStorage();
-        db.ref("year1_cgpa").push(parseFloat(gpa));
-      }
+      let totalCredits = 0, totalPoints = 0;
+      courseData[year][semester - 1].courses.forEach(course => {
+        const key = `${year}-${semester}-${course.name}`;
+        const grade = grades[key];
+        if (grade && gpaScale[grade] !== undefined) {
+          totalCredits += course.credits;
+          totalPoints += gpaScale[grade] * course.credits;
+        }
+      });
+      return totalCredits ? (totalPoints / totalCredits).toFixed(2) : null;
     }
 
     function updateGPA() {
-      Object.keys(courseData).forEach(year => {
-        courseData[year].forEach((sem, i) => {
-          const selects = document.querySelectorAll(`select[data-year='${year}'][data-semester='${i + 1}']`);
-          let totalCredits = 0, totalPoints = 0;
-          selects.forEach(sel => {
-            const grade = sel.value;
-            const credits = parseFloat(sel.dataset.credits);
-            if (grade && gpaScale[grade] !== undefined) {
-              totalCredits += credits;
-              totalPoints += gpaScale[grade] * credits;
-            }
-          });
-          const gpa = totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
-          const gpaDisplay = document.getElementById(`gpa-${year}-${i + 1}`);
-          if (gpaDisplay) gpaDisplay.innerText = `Semester GPA: ${gpa}`;
+      let sem1GPA = calculateGPAFor(1, 1);
+      let sem2GPA = calculateGPAFor(1, 2);
+      let stored = JSON.parse(localStorage.getItem('submitted') || '{}');
+
+      if (sem1GPA && sem2GPA && !stored.year1) {
+        const cgpa = calculateCGPAFromLocalStorage();
+        submitFirstYearGPA(sem1GPA, sem2GPA, cgpa);
+        stored.year1 = true;
+        localStorage.setItem('submitted', JSON.stringify(stored));
+      }
+
+      document.getElementById('cgpaDisplay').innerText = `Cumulative GPA (CGPA): ${calculateCGPAFromLocalStorage()}`;
+    }
+
+    function switchYear() {
+      const year = document.getElementById('yearSelector').value;
+      const container = document.getElementById('yearContainer');
+      container.innerHTML = '';
+
+      courseData[year].forEach((sem, index) => {
+        const table = document.createElement('table');
+        table.innerHTML = `<thead><tr><th colspan="3">Year ${year} - Semester ${index + 1}</th></tr><tr><th>Course</th><th>Credits</th><th>Grade</th></tr></thead>`;
+        const tbody = document.createElement('tbody');
+
+        sem.courses.forEach(course => {
+          const key = `${year}-${index + 1}-${course.name}`;
+          const saved = JSON.parse(localStorage.getItem('grades') || '{}');
+          const savedGrade = saved[key] || '';
+          const options = Object.keys(gpaScale).map(grade => `<option value="${grade}" ${grade === savedGrade ? 'selected' : ''}>${grade}</option>`).join('');
+
+          const row = `<tr><td>${emojiMap[course.name] || ''} ${course.name}</td><td>${course.credits}</td><td><select data-year="${year}" data-semester="${index + 1}" data-name="${course.name}" data-credits="${course.credits}" onchange="saveGrade(this)"><option value="">--</option>${options}</select></td></tr>`;
+          tbody.innerHTML += row;
         });
+
+        table.appendChild(tbody);
+        container.appendChild(table);
+
+        const clearBtn = document.createElement('button');
+        clearBtn.textContent = `Clear Semester ${index + 1}`;
+        clearBtn.onclick = () => clearSemester(year, index + 1);
+        container.appendChild(clearBtn);
+
+        const gpaDisplay = document.createElement('h3');
+        gpaDisplay.id = `gpa-${year}-${index + 1}`;
+        container.appendChild(gpaDisplay);
       });
-      const cgpa = calculateCGPAFromLocalStorage();
-      document.getElementById('cgpaDisplay').innerText = `Cumulative GPA (CGPA): ${cgpa}`;
+
+      updateGPA();
+    }
+
+    function saveGrade(select) {
+      const { year, semester, name, credits } = select.dataset;
+      const grade = select.value;
+      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
+      grades[`${year}-${semester}-${name}`] = grade;
+      localStorage.setItem('grades', JSON.stringify(grades));
+      updateGPA();
+    }
+
+    function clearSemester(year, semester) {
+      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
+      const selects = document.querySelectorAll(`select[data-year='${year}'][data-semester='${semester}']`);
+      selects.forEach(sel => {
+        sel.value = '';
+        delete grades[`${year}-${semester}-${sel.dataset.name}`];
+      });
+      localStorage.setItem('grades', JSON.stringify(grades));
+      updateGPA();
+    }
+
+    function resetAllData() {
+      localStorage.removeItem('grades');
+      localStorage.removeItem('submitted');
+      switchYear();
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
     }
 
     window.onload = () => {
       switchYear();
-    };
+    }
   </script>
 </body>
 </html>
