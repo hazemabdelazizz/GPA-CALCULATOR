@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html><html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -64,42 +63,16 @@
     .whatsapp-float span {
       font-weight: bold;
     }
-    #loading {
-      display: none;
-      text-align: center;
-      font-size: 1.5rem;
-      margin-bottom: 1rem;
-      animation: spin 1.5s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
   </style>
 </head>
 <body>
-  <h1>MTI MED (ACADEMIC) GPA Calculator</h1>
+  <h1>MTI MED (ACADEMIC) GPA Calculator 🩺</h1><label for="yearSelector">Select Academic Year:</label> <select id="yearSelector" onchange="switchYear()"> <option value="1">First Year</option> <option value="2">Second Year</option> <option value="3">Third Year</option> </select>
 
-  <label for="yearSelector">Select Academic Year:</label>
-  <select id="yearSelector" onchange="switchYear()">
-    <option value="1">First Year</option>
-    <option value="2">Second Year</option>
-    <option value="3">Third Year</option>
-  </select>
+<button onclick="toggleDarkMode()">Toggle Dark Mode</button> <button onclick="resetAllData()" style="background-color: crimson; color: white;">Reset All Data</button>
 
-  <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
-  <button onclick="resetAllData()" style="background-color: crimson; color: white;">Reset All Data</button>
-
-  <div id="loading">🩺⚗️🧠 Calculating GPA...</div>
-  <div id="yearContainer"></div>
-
-  <h2 id="cgpaDisplay"></h2>
-
-  <a href="https://wa.me/201122876666?text=Hi%20I%20have%20feedback%20about%20the%20MTI%20MED%20GPA%20Calculator" class="whatsapp-float" target="_blank" title="Send Feedback via WhatsApp">
+  <div id="yearContainer"></div>  <h2 id="cgpaDisplay"></h2>  <a href="https://wa.me/201122876666?text=Hi%20I%20have%20feedback%20about%20the%20MTI%20MED%20GPA%20Calculator" class="whatsapp-float" target="_blank" title="Send Feedback via WhatsApp">
     🟩 <span>Send Feedback</span>
-  </a>
-
-  <script>
+  </a>  <script>
     const gpaScale = {
       'A+': 4.00, 'A': 3.67, 'B+': 3.33,
       'B': 3.00, 'C+': 2.67, 'C': 2.33,
@@ -110,10 +83,10 @@
       'Anatomy': '🦴', 'Physiology': '🤸🏻‍♂️', 'Histology': '🔬', 'Biochemistry': '⚗️',
       'Immunology': '🛡️', 'Genetics': '🧬', 'General Pathology': '🧫',
       'General Pharmacology': '💊', 'Hematology': '🩸', 'ECE': '🧑‍🏫',
-      'Musculoskeletal1': '💪', 'Neuroscience': '🧠', 'Musculoskeletal 2': '🏋🏻‍♂️',
+      'Musculoskeletal1': '💪', 'Neuroscience': '🧠', 'Musculoskeletal 2': '🦿',
       'Respiratory': '🫁', 'CVS': '❤️', 'ECE II': '🧑‍🏫', 'GIT': '🍽️',
       'Urinary system': '💧', 'Reproductive system': '🧬', 'ECE III': '🧑‍🏫',
-      'CNS': '🧠', 'Musculoskeletal 3': '👨🏻‍⚕️', 'Endocrine': '🧪', 'ECE IV': '🧑‍🏫'
+      'CNS': '🧠', 'Musculoskeletal 3': '🏋️', 'Endocrine': '🧪', 'ECE IV': '🧑‍🏫'
     };
 
     const courseData = {
@@ -257,34 +230,29 @@
     }
 
     function updateGPA() {
-      document.getElementById("loading").style.display = "block";
-      setTimeout(() => {
-        Object.keys(courseData).forEach(year => {
-          courseData[year].forEach((sem, i) => {
-            const selects = document.querySelectorAll(`select[data-year='${year}'][data-semester='${i + 1}']`);
-            let totalCredits = 0, totalPoints = 0;
-            selects.forEach(sel => {
-              const grade = sel.value;
-              const credits = parseFloat(sel.dataset.credits);
-              if (grade && gpaScale[grade] !== undefined) {
-                totalCredits += credits;
-                totalPoints += gpaScale[grade] * credits;
-              }
-            });
-            const gpa = totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
-            const gpaDisplay = document.getElementById(`gpa-${year}-${i + 1}`);
-            if (gpaDisplay) gpaDisplay.innerText = `Semester GPA: ${gpa}`;
+      Object.keys(courseData).forEach(year => {
+        courseData[year].forEach((sem, i) => {
+          const selects = document.querySelectorAll(`select[data-year='${year}'][data-semester='${i + 1}']`);
+          let totalCredits = 0, totalPoints = 0;
+          selects.forEach(sel => {
+            const grade = sel.value;
+            const credits = parseFloat(sel.dataset.credits);
+            if (grade && gpaScale[grade] !== undefined) {
+              totalCredits += credits;
+              totalPoints += gpaScale[grade] * credits;
+            }
           });
+          const gpa = totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+          const gpaDisplay = document.getElementById(`gpa-${year}-${i + 1}`);
+          if (gpaDisplay) gpaDisplay.innerText = `Semester GPA: ${gpa}`;
         });
-        const cgpa = calculateCGPAFromLocalStorage();
-        document.getElementById('cgpaDisplay').innerText = `Cumulative GPA (CGPA): ${cgpa}`;
-        document.getElementById("loading").style.display = "none";
-      }, 300);
+      });
+      const cgpa = calculateCGPAFromLocalStorage();
+      document.getElementById('cgpaDisplay').innerText = `Cumulative GPA (CGPA): ${cgpa}`;
     }
 
     window.onload = () => {
       switchYear();
     };
-  </script>
-</body>
+  </script></body>
 </html>
