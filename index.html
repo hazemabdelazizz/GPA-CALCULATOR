@@ -64,6 +64,17 @@
     .whatsapp-float span {
       font-weight: bold;
     }
+    #loading {
+      display: none;
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 1rem;
+      animation: spin 1.5s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
   </style>
 </head>
 <body>
@@ -79,6 +90,7 @@
   <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
   <button onclick="resetAllData()" style="background-color: crimson; color: white;">Reset All Data</button>
 
+  <div id="loading">🩺⚗️🧠 Calculating GPA...</div>
   <div id="yearContainer"></div>
 
   <h2 id="cgpaDisplay"></h2>
@@ -89,14 +101,19 @@
 
   <script>
     const gpaScale = {
-      'A+': 4.00,
-      'A': 3.67,
-      'B+': 3.33,
-      'B': 3.00,
-      'C+': 2.67,
-      'C': 2.33,
-      'D': 2.00,
-      'F': 0.00
+      'A+': 4.00, 'A': 3.67, 'B+': 3.33,
+      'B': 3.00, 'C+': 2.67, 'C': 2.33,
+      'D': 2.00, 'F': 0.00
+    };
+
+    const emojiMap = {
+      'Anatomy': '🦴', 'Physiology': '🤸🏻‍♂️', 'Histology': '🔬', 'Biochemistry': '⚗️',
+      'Immunology': '🛡️', 'Genetics': '🧬', 'General Pathology': '🧫',
+      'General Pharmacology': '💊', 'Hematology': '🩸', 'ECE': '🧑‍🏫',
+      'Musculoskeletal1': '💪', 'Neuroscience': '🧠', 'Musculoskeletal 2': '🏋🏻‍♂️',
+      'Respiratory': '🫁', 'CVS': '❤️', 'ECE II': '🧑‍🏫', 'GIT': '🍽️',
+      'Urinary system': '💧', 'Reproductive system': '🧬', 'ECE III': '🧑‍🏫',
+      'CNS': '🧠', 'Musculoskeletal 3': '👨🏻‍⚕️', 'Endocrine': '🧪', 'ECE IV': '🧑‍🏫'
     };
 
     const courseData = {
@@ -155,11 +172,12 @@
         const table = document.createElement('table');
         const tbody = document.createElement('tbody');
         sem.courses.forEach(course => {
+          const displayName = `${emojiMap[course.name] || ''} ${course.name}`;
           const savedGrades = JSON.parse(localStorage.getItem('grades') || '{}');
           const savedGrade = savedGrades[`${year}-${index + 1}-${course.name}`] || '';
           const options = Object.keys(gpaScale).map(g => `<option value="${g}" ${savedGrade === g ? 'selected' : ''}>${g}</option>`).join('');
           const row = `<tr>
-            <td>${course.name}</td>
+            <td>${displayName}</td>
             <td>${course.credits}</td>
             <td>
               <select onchange="saveAndUpdateGPA(this)" data-year="${year}" data-semester="${index + 1}" data-name="${course.name}" data-credits="${course.credits}">
@@ -223,7 +241,6 @@
     function calculateCGPAFromLocalStorage() {
       const grades = JSON.parse(localStorage.getItem('grades') || '{}');
       let totalCredits = 0, totalPoints = 0;
-
       for (const year in courseData) {
         courseData[year].forEach((semester, semIndex) => {
           semester.courses.forEach(course => {
@@ -236,31 +253,33 @@
           });
         });
       }
-
       return totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
     }
 
     function updateGPA() {
-      Object.keys(courseData).forEach(year => {
-        courseData[year].forEach((sem, i) => {
-          const selects = document.querySelectorAll(`select[data-year='${year}'][data-semester='${i + 1}']`);
-          let totalCredits = 0, totalPoints = 0;
-          selects.forEach(sel => {
-            const grade = sel.value;
-            const credits = parseFloat(sel.dataset.credits);
-            if (grade && gpaScale[grade] !== undefined) {
-              totalCredits += credits;
-              totalPoints += gpaScale[grade] * credits;
-            }
+      document.getElementById("loading").style.display = "block";
+      setTimeout(() => {
+        Object.keys(courseData).forEach(year => {
+          courseData[year].forEach((sem, i) => {
+            const selects = document.querySelectorAll(`select[data-year='${year}'][data-semester='${i + 1}']`);
+            let totalCredits = 0, totalPoints = 0;
+            selects.forEach(sel => {
+              const grade = sel.value;
+              const credits = parseFloat(sel.dataset.credits);
+              if (grade && gpaScale[grade] !== undefined) {
+                totalCredits += credits;
+                totalPoints += gpaScale[grade] * credits;
+              }
+            });
+            const gpa = totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+            const gpaDisplay = document.getElementById(`gpa-${year}-${i + 1}`);
+            if (gpaDisplay) gpaDisplay.innerText = `Semester GPA: ${gpa}`;
           });
-          const gpa = totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
-          const gpaDisplay = document.getElementById(`gpa-${year}-${i + 1}`);
-          if (gpaDisplay) gpaDisplay.innerText = `Semester GPA: ${gpa}`;
         });
-      });
-
-      const cgpa = calculateCGPAFromLocalStorage();
-      document.getElementById('cgpaDisplay').innerText = `Cumulative GPA (CGPA): ${cgpa}`;
+        const cgpa = calculateCGPAFromLocalStorage();
+        document.getElementById('cgpaDisplay').innerText = `Cumulative GPA (CGPA): ${cgpa}`;
+        document.getElementById("loading").style.display = "none";
+      }, 300);
     }
 
     window.onload = () => {
