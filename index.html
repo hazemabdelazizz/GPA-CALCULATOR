@@ -3,6 +3,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MTI MED (ACADEMIC) GPA Calculator</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -72,7 +74,9 @@
 
   <div id="yearContainer"></div>  <h2 id="cgpaDisplay"></h2>  <a href="https://wa.me/201122876666?text=Hi%20I%20have%20feedback%20about%20the%20MTI%20MED%20GPA%20Calculator" class="whatsapp-float" target="_blank" title="Send Feedback via WhatsApp">
     🟩 <span>Send Feedback</span>
-  </a>  <script>
+  </a>
+
+  <script>
     const gpaScale = {
       'A+': 4.00, 'A': 3.67, 'B+': 3.33,
       'B': 3.00, 'C+': 2.67, 'C': 2.33,
@@ -131,6 +135,18 @@
         ]},
       ]
     };
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCb4SE2teLRIDEk3dY077a32xuPRuNlWr4",
+      authDomain: "mti-med-gpa-calc.firebaseapp.com",
+      databaseURL: "https://mti-med-gpa-calc-default-rtdb.firebaseio.com",
+      projectId: "mti-med-gpa-calc",
+      storageBucket: "mti-med-gpa-calc.appspot.com",
+      messagingSenderId: "545061029336",
+      appId: "1:545061029336:web:7c73245baf0e3593639ead"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     function switchYear() {
       const year = document.getElementById('yearSelector').value;
@@ -209,6 +225,7 @@
       grades[`${year}-${semester}-${name}`] = grade;
       localStorage.setItem('grades', JSON.stringify(grades));
       updateGPA();
+      if (parseInt(year) === 1) trySubmitYear1();
     }
 
     function calculateCGPAFromLocalStorage() {
@@ -227,6 +244,15 @@
         });
       }
       return totalCredits ? (totalPoints / totalCredits).toFixed(2) : '0.00';
+    }
+
+    function trySubmitYear1() {
+      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
+      const year1Courses = courseData[1].flatMap((sem, i) => sem.courses.map(c => `${1}-${i + 1}-${c.name}`));
+      if (year1Courses.every(key => grades[key])) {
+        const gpa = calculateCGPAFromLocalStorage();
+        db.ref("year1_cgpa").push(parseFloat(gpa));
+      }
     }
 
     function updateGPA() {
@@ -254,5 +280,6 @@
     window.onload = () => {
       switchYear();
     };
-  </script></body>
+  </script>
+</body>
 </html>
