@@ -18,6 +18,13 @@
     h1, h2 {
       text-align: center;
     }
+    /* GLOBAL: ensure selects keep extra space on the right so "A+" doesn't get hidden under native arrows */
+    select {
+      padding-right: 1.6rem; /* extra space for the + sign (important for many Android browsers) */
+      box-sizing: border-box;
+      -webkit-appearance: menulist-button;
+      appearance: menulist-button;
+    }
     select, button {
       padding: 0.5rem;
       margin: 0.5rem 0;
