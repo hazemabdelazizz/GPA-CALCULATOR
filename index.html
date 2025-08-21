@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MTI MED (ACADEMIC) GPA Calculator</title>
+  <title>MTI MED GPA Calculator</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <style>
@@ -71,7 +71,7 @@
   </style>
 </head>
 <body>
-  <h1>MTI MED (ACADEMIC) GPA Calculator 🩺</h1>
+  <h1>MTI MED GPA Calculator 🩺</h1>
   <label for="yearSelector">Select Academic Year:</label>
   <select id="yearSelector" onchange="switchYear()">
     <option value="1">First Year</option>
@@ -208,7 +208,7 @@
         ]},
       ],
       5: [
-        { semester: 1, courses: [
+        { courses: [
           { name: 'Medicine II', credits: 7 },
           { name: 'Surgery II', credits: 8 },
           { name: 'Medicine III', credits: 7 },
