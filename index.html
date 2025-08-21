@@ -23,6 +23,7 @@
       margin: 0.5rem 0;
       width: 100%;
       white-space: nowrap;
+      box-sizing: border-box;
     }
     table {
       width: 100%;
@@ -69,11 +70,18 @@
       font-weight: bold;
     }
 
-    /* Android-only rendering fix (applied when body has .android-fix) */
-    .android-fix select {
-      letter-spacing: 0.5px;
-      padding-right: 1.2rem;
-      line-height: 1.4;
+    /* ANDROID-ONLY FIX: ensure the "Grade" column stays wide enough so "A+" isn't clipped */
+    .android-fix table { table-layout: fixed; }
+    .android-fix th:nth-child(1), .android-fix td:nth-child(1) { width: auto; text-align: left; }
+    .android-fix th:nth-child(2), .android-fix td:nth-child(2) { width: 4.25rem; }
+    .android-fix th:nth-child(3), .android-fix td:nth-child(3) { width: 6.25rem; }
+    .android-fix td:nth-child(1) { word-break: break-word; }
+    .android-fix td:nth-child(3) select { padding-right: 1.6rem; } /* extra space so + isn't under the native arrow */
+
+    /* keep it tight on very small Android screens without causing horizontal scroll */
+    @media (max-width: 420px) {
+      .android-fix th:nth-child(2), .android-fix td:nth-child(2) { width: 3.75rem; }
+      .android-fix th:nth-child(3), .android-fix td:nth-child(3) { width: 5.75rem; }
     }
   </style>
 </head>
@@ -249,7 +257,7 @@
           const grades = JSON.parse(localStorage.getItem('grades') || '{}');
           const savedGrade = grades[key] || '';
           const options = Object.keys(gpaScale).map(g => `<option value="${g}" ${g === savedGrade ? 'selected' : ''}>${g}</option>`).join('');
-          tbody.innerHTML += `<tr><td>${emojiMap[course.name] || ''} ${course.name}</td><td>${course.credits}</td><td><select data-year="${year}" data-semester="${index + 1}" data-name="${course.name}" data-credits="${course.credits}" onchange="saveGrade(this)"><option value="">--</option>${options}</select></td></tr>`;
+          tbody.innerHTML += `<tr><td style="text-align:left">${emojiMap[course.name] || ''} ${course.name}</td><td>${course.credits}</td><td><select data-year="${year}" data-semester="${index + 1}" data-name="${course.name}" data-credits="${course.credits}" onchange="saveGrade(this)"><option value="">--</option>${options}</select></td></tr>`;
         });
 
         table.appendChild(tbody);
@@ -374,7 +382,7 @@
       document.body.classList.toggle('dark-mode');
     }
 
-    // Detect Android and apply the select rendering fix only on Android
+    // Android-only: add class to enable the grade column width/padding fix
     window.onload = () => {
       try {
         const ua = navigator.userAgent || '';
