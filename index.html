@@ -77,6 +77,8 @@
     <option value="1">First Year</option>
     <option value="2">Second Year</option>
     <option value="3">Third Year</option>
+    <option value="4">Fourth Year</option>
+    <option value="5">Fifth Year</option>
   </select>
 
   <button onclick="toggleDarkMode()">Toggle Dark Mode</button>
@@ -113,7 +115,31 @@
       'Musculoskeletal1': '💪', 'Neuroscience': '🧠', 'Musculoskeletal 2': '🦿',
       'Respiratory': '🫁', 'CVS': '❤️', 'ECE II': '🧑‍🏫', 'GIT': '🍽️',
       'Urinary system': '💧', 'Reproductive system': '🧬', 'ECE III': '🧑‍🏫',
-      'CNS': '🧠', 'Musculoskeletal 3': '🏋️', 'Endocrine': '🧪', 'ECE IV': '🧑‍🏫'
+      'CNS': '🧠', 'Musculoskeletal 3': '🏋️', 'Endocrine': '🧪', 'ECE IV': '🧑‍🏫',
+      'Medical Professionalism I': '📘',
+      'Ophthalmology': '👁️',
+      'E.N.T': '👂',
+      'Community': '🌍',
+      'Investigative': '🔍',
+      'Pediatrics I': '🧒',
+      'OB&GYN I': '🤰',
+      'Forensics': '⚖️',
+      'Medicine I': '💊',
+      'Medical professionalism IV': '📗',
+      'Pediatrics II': '👶',
+      'OB&GYN II': '🍼',
+      'Surgery I': '🔪',
+      'Research Methodology I': '📑',
+      'Medicine II': '💉',
+      'Surgery II': '🩺',
+      'Medicine III': '💊',
+      'Surgery III': '🏥',
+      'Medicine IV': '💉',
+      'Psychiatry': '🧠',
+      'Family Medicine': '👨‍👩‍👧',
+      'Emergency & Trauma': '🚨',
+      'Research Methodology II': '📄',
+      'Medical professionalism V': '📙'
     };
 
     const courseData = {
@@ -133,6 +159,7 @@
           { name: 'ECE', credits: 1 },
           { name: 'Musculoskeletal1', credits: 5 },
           { name: 'Neuroscience', credits: 2 },
+          { name: 'Medical Professionalism I', credits: 1 },
         ]},
       ],
       2: [
@@ -157,6 +184,41 @@
           { name: 'Endocrine', credits: 5 },
           { name: '👨🏻‍🔬 Psychology II', credits: 1 },
           { name: 'ECE IV', credits: 1 },
+        ]},
+        { semester: 2, courses: [
+          { name: 'Ophthalmology', credits: 6 },
+          { name: 'E.N.T', credits: 6 },
+          { name: 'Community', credits: 5 },
+          { name: 'Investigative', credits: 3 },
+        ]},
+      ],
+      4: [
+        { semester: 1, courses: [
+          { name: 'Pediatrics I', credits: 6 },
+          { name: 'OB&GYN I', credits: 6 },
+          { name: 'Forensics', credits: 6 },
+          { name: 'Medicine I', credits: 6 },
+          { name: 'Medical professionalism IV', credits: 1 },
+        ]},
+        { semester: 2, courses: [
+          { name: 'Pediatrics II', credits: 6 },
+          { name: 'OB&GYN II', credits: 6 },
+          { name: 'Surgery I', credits: 8 },
+          { name: 'Research Methodology I', credits: 2 },
+        ]},
+      ],
+      5: [
+        { semester: 1, courses: [
+          { name: 'Medicine II', credits: 7 },
+          { name: 'Surgery II', credits: 8 },
+          { name: 'Medicine III', credits: 7 },
+          { name: 'Surgery III', credits: 8 },
+          { name: 'Medicine IV', credits: 7 },
+          { name: 'Psychiatry', credits: 3 },
+          { name: 'Family Medicine', credits: 3 },
+          { name: 'Emergency & Trauma', credits: 3 },
+          { name: 'Research Methodology II', credits: 1 },
+          { name: 'Medical professionalism V', credits: 1 },
         ]},
       ]
     };
@@ -222,9 +284,9 @@
           sem.courses.every(course => grades[`1-${index + 1}-${course.name}`])
         );
 
-      if (allFilled && !localStorage.getItem('firstYearSubmitted')) {
-         db.ref('firstYearGPAs').push({ semester1GPA: sem1GPA, semester2GPA: sem2GPA, cgpa: fullCGPA });
-           localStorage.setItem('firstYearSubmitted', 'true');
+        if (allFilled && !localStorage.getItem('firstYearSubmitted')) {
+          db.ref('firstYearGPAs').push({ semester1GPA: sem1GPA, semester2GPA: sem2GPA, cgpa: fullCGPA });
+          localStorage.setItem('firstYearSubmitted', 'true');
         }
       }
     }
