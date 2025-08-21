@@ -18,19 +18,11 @@
     h1, h2 {
       text-align: center;
     }
-    /* GLOBAL: ensure selects keep extra space on the right so "A+" doesn't get hidden under native arrows */
-    select {
-      padding-right: 1.6rem; /* extra space for the + sign (important for many Android browsers) */
-      box-sizing: border-box;
-      -webkit-appearance: menulist-button;
-      appearance: menulist-button;
-    }
     select, button {
       padding: 0.5rem;
       margin: 0.5rem 0;
       width: 100%;
       white-space: nowrap;
-      box-sizing: border-box;
     }
     table {
       width: 100%;
@@ -75,20 +67,6 @@
     }
     .whatsapp-float span {
       font-weight: bold;
-    }
-
-    /* ANDROID-ONLY FIX: ensure the "Grade" column stays wide enough so "A+" isn't clipped */
-    .android-fix table { table-layout: fixed; }
-    .android-fix th:nth-child(1), .android-fix td:nth-child(1) { width: auto; text-align: left; }
-    .android-fix th:nth-child(2), .android-fix td:nth-child(2) { width: 4.25rem; }
-    .android-fix th:nth-child(3), .android-fix td:nth-child(3) { width: 6.25rem; }
-    .android-fix td:nth-child(1) { word-break: break-word; }
-    .android-fix td:nth-child(3) select { padding-right: 1.6rem; } /* extra space so + isn't under the native arrow */
-
-    /* keep it tight on very small Android screens without causing horizontal scroll */
-    @media (max-width: 420px) {
-      .android-fix th:nth-child(2), .android-fix td:nth-child(2) { width: 3.75rem; }
-      .android-fix th:nth-child(3), .android-fix td:nth-child(3) { width: 5.75rem; }
     }
   </style>
 </head>
@@ -230,7 +208,7 @@
         ]},
       ],
       5: [
-        { courses: [
+        { semester: 1, courses: [
           { name: 'Medicine II', credits: 7 },
           { name: 'Surgery II', credits: 8 },
           { name: 'Medicine III', credits: 7 },
@@ -253,18 +231,14 @@
       courseData[year].forEach((sem, index) => {
         const table = document.createElement('table');
         const tbody = document.createElement('tbody');
-
-        const isYearFive = (year === '5');
-        const headerTitle = isYearFive ? `Year ${year}` : `Year ${year} - Semester ${index + 1}`;
-
-        table.innerHTML = `<thead><tr><th colspan="3">${headerTitle}</th></tr><tr><th>Course</th><th>Credits</th><th>Grade</th></tr></thead>`;
+        table.innerHTML = `<thead><tr><th colspan="3">Year ${year} - Semester ${sem.semester || index + 1}</th></tr><tr><th>Course</th><th>Credits</th><th>Grade</th></tr></thead>`;
 
         sem.courses.forEach(course => {
-          const key = `${year}-${index + 1}-${course.name}`;
+          const key = `${year}-${sem.semester || index + 1}-${course.name}`;
           const grades = JSON.parse(localStorage.getItem('grades') || '{}');
           const savedGrade = grades[key] || '';
           const options = Object.keys(gpaScale).map(g => `<option value="${g}" ${g === savedGrade ? 'selected' : ''}>${g}</option>`).join('');
-          tbody.innerHTML += `<tr><td style="text-align:left">${emojiMap[course.name] || ''} ${course.name}</td><td>${course.credits}</td><td><select data-year="${year}" data-semester="${index + 1}" data-name="${course.name}" data-credits="${course.credits}" onchange="saveGrade(this)"><option value="">--</option>${options}</select></td></tr>`;
+          tbody.innerHTML += `<tr><td>${emojiMap[course.name] || ''} ${course.name}</td><td>${course.credits}</td><td><select data-year="${year}" data-semester="${sem.semester || index + 1}" data-name="${course.name}" data-credits="${course.credits}" onchange="saveGrade(this)"><option value="">--</option>${options}</select></td></tr>`;
         });
 
         table.appendChild(tbody);
@@ -274,17 +248,12 @@
         container.appendChild(wrapper);
 
         const gpaDisplay = document.createElement('h3');
-        gpaDisplay.id = `gpa-${year}-${index + 1}`;
+        gpaDisplay.id = `gpa-${year}-${sem.semester || index + 1}`;
         container.appendChild(gpaDisplay);
 
         const clearBtn = document.createElement('button');
-        if (isYearFive) {
-          clearBtn.innerText = 'Clear Year';
-          clearBtn.onclick = () => clearYear(year);
-        } else {
-          clearBtn.innerText = `Clear Semester ${index + 1}`;
-          clearBtn.onclick = () => clearSemester(year, index + 1);
-        }
+        clearBtn.innerText = `Clear Semester ${sem.semester || index + 1}`;
+        clearBtn.onclick = () => clearSemester(year, sem.semester || index + 1);
         container.appendChild(clearBtn);
       });
       updateGPA();
@@ -294,17 +263,6 @@
       const grades = JSON.parse(localStorage.getItem('grades') || '{}');
       courseData[year][semester - 1].courses.forEach(course => {
         delete grades[`${year}-${semester}-${course.name}`];
-      });
-      localStorage.setItem('grades', JSON.stringify(grades));
-      switchYear();
-    }
-
-    function clearYear(year) {
-      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
-      courseData[year].forEach((sem, index) => {
-        sem.courses.forEach(course => {
-          delete grades[`${year}-${index + 1}-${course.name}`];
-        });
       });
       localStorage.setItem('grades', JSON.stringify(grades));
       switchYear();
@@ -352,7 +310,7 @@
       for (const year in courseData) {
         courseData[year].forEach((semester, index) => {
           semester.courses.forEach(course => {
-            const grade = grades[`${year}-${index + 1}-${course.name}`];
+            const grade = grades[`${year}-${semester.semester || index + 1}-${course.name}`];
             if (grade && gpaScale[grade] !== undefined) {
               totalCredits += course.credits;
               totalPoints += gpaScale[grade] * course.credits;
@@ -366,12 +324,9 @@
     function updateGPA() {
       for (const year in courseData) {
         courseData[year].forEach((sem, index) => {
-          const gpa = calculateGPA(year, index + 1);
-          const display = document.getElementById(`gpa-${year}-${index + 1}`);
-          if (display) {
-            const label = (year === '5') ? 'Year GPA' : 'Semester GPA';
-            display.innerText = `${label}: ${gpa || 'N/A'}`;
-          }
+          const gpa = calculateGPA(year, sem.semester || index + 1);
+          const display = document.getElementById(`gpa-${year}-${sem.semester || index + 1}`);
+          if (display) display.innerText = `Semester GPA: ${gpa || 'N/A'}`;
         });
       }
       document.getElementById('cgpaDisplay').innerText = `Cumulative GPA (CGPA): ${calculateCGPA()}`;
@@ -389,16 +344,7 @@
       document.body.classList.toggle('dark-mode');
     }
 
-    // Android-only: add class to enable the grade column width/padding fix
-    window.onload = () => {
-      try {
-        const ua = navigator.userAgent || '';
-        const uaData = navigator.userAgentData || {};
-        const isAndroid = /android/i.test(ua) || (uaData.platform && /android/i.test(uaData.platform));
-        if (isAndroid) document.body.classList.add('android-fix');
-      } catch (e) {}
-      switchYear();
-    };
+    window.onload = switchYear;
   </script>
 </body>
 </html>
