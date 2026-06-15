@@ -780,10 +780,10 @@
 
       let sub = 'Enter grades to calculate';
       if (val) {
-        if (val >= 3.67) sub = 'Outstanding — A territory 🏆';
-        else if (val >= 3.00) sub = 'Great work — B territory 👍';
-        else if (val >= 2.33) sub = 'Passing — C territory 📖';
-        else sub = 'Below average — keep pushing 💪';
+        if (val >= 3.67) sub = 'A territory 🏆';
+        else if (val >= 3.00) sub = 'B territory 👍';
+        else if (val >= 2.33) sub = 'C territory 📖';
+        else sub = 'Keep pushing 💪';
       }
       document.getElementById('cgpaSub').textContent = sub;
 
