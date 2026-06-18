@@ -342,27 +342,33 @@ function switchYear(y){
 
 function saveGrade(sel){
   const{year,sem,name}=sel.dataset;
-  const g=grades();g[`${year}-${sem}-${name}`]=sel.value;saveGrades(g);
+  const g=grades();
+  if(sel.value){g[`${year}-${sem}-${name}`]=sel.value;}
+  else{delete g[`${year}-${sem}-${name}`];}
+  saveGrades(g);
   sel.className=`grade-select ${gc(sel.value)}`;
   const semNum=parseInt(sem);const yr=parseInt(year);
-  const gv=calcSemGPA(yr,semNum);
-  const badge=document.getElementById(`gpa-${yr}-${semNum}`);
-  if(badge)badge.textContent=gv?`GPA ${gv.toFixed(2)}`:'GPA —';
-  const sem2=courseData[yr][semNum-1];
-  const total=sem2.courses.length;
-  const filled=sem2.courses.filter(c=>g[`${yr}-${semNum}-${c.name}`]).length;
+  const semObj=courseData[yr][semNum-1];
+  const total=semObj.courses.length;
+  const fresh=grades();
+  const filled=semObj.courses.filter(c=>fresh[`${yr}-${semNum}-${c.name}`]).length;
   const pct=total?Math.round(filled/total*100):0;
   const prog=document.getElementById(`prog-${yr}-${semNum}`);
   if(prog){prog.style.width=pct+'%';prog.nextElementSibling.textContent=pct+'%';}
+  const gv=calcSemGPA(yr,semNum);
+  const badge=document.getElementById(`gpa-${yr}-${semNum}`);
+  if(badge)badge.textContent=gv?`GPA ${gv.toFixed(2)}`:'GPA —';
   updateHero();
-  if(year==="1"){
-    const s1=calcSemGPA(1,1),s2=calcSemGPA(1,2),cgpa=calcCGPA();
-    const allFilled=courseData[1].every((s,i)=>s.courses.every(c=>g[`1-${i+1}-${c.name}`]));
-    if(allFilled&&!localStorage.getItem('firstYearSubmitted')){
-      db.ref('firstYearGPAs').push({semester1GPA:s1,semester2GPA:s2,cgpa});
-      localStorage.setItem('firstYearSubmitted','true');
+  try{
+    if(year==="1"){
+      const s1=calcSemGPA(1,1),s2=calcSemGPA(1,2),cgpa=calcCGPA();
+      const allFilled=courseData[1].every((sem,i)=>sem.courses.every(c=>fresh[`1-${i+1}-${c.name}`]));
+      if(allFilled&&!localStorage.getItem('firstYearSubmitted')){
+        db.ref('firstYearGPAs').push({semester1GPA:s1,semester2GPA:s2,cgpa});
+        localStorage.setItem('firstYearSubmitted','true');
+      }
     }
-  }
+  }catch(e){}
 }
 
 function clearSem(y,s){const g=grades();courseData[y][s-1].courses.forEach(c=>{delete g[`${y}-${s}-${c.name}`];});saveGrades(g);switchYear(activeYear);}
