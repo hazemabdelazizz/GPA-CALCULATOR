@@ -1,840 +1,443 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MTI MED GPA Calculator</title>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MTI MED GPA Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<style>
+:root {
+  --bg:#f0f2f8;--bg2:#e8eaf2;--surface:#ffffff;--surface2:#f7f8fc;--surface3:#eef0f8;
+  --border:#e0e3ef;--border2:#c8cce0;--text:#0d1220;--text2:#3d4460;--muted:#7a82a0;
+  --accent:#1a4fff;--accent2:#0f3add;--accent-lt:#dce7ff;--accent-soft:rgba(26,79,255,0.08);
+  --red:#e0243a;--red-lt:#fde8ea;--red-soft:rgba(224,36,58,0.09);
+  --green:#00a855;--green-lt:#d4f5e5;--green-soft:rgba(0,168,85,0.09);
+  --gold:#c8930a;--gold-lt:#fef3d6;--gold-soft:rgba(200,147,10,0.09);
+  --purple:#6c3df5;--purple-lt:#ede7ff;--teal:#009e84;--teal-lt:#d0f5ee;
+  --radius:14px;--radius-sm:8px;
+  --shadow:0 1px 4px rgba(13,18,32,0.06),0 4px 16px rgba(13,18,32,0.04);
+  --shadow-lg:0 8px 40px rgba(13,18,32,0.12);--shadow-accent:0 4px 24px rgba(26,79,255,0.22);
+}
+.dark {
+  --bg:#080d18;--bg2:#0e1525;--surface:#111826;--surface2:#18213a;--surface3:#1e2840;
+  --border:#222c45;--border2:#2e3c5c;--text:#e8ecf7;--text2:#9faec8;--muted:#68789a;
+  --accent:#4d79ff;--accent2:#6b8fff;--accent-lt:#1a2d60;--accent-soft:rgba(77,121,255,0.1);
+  --red:#ff4d5a;--red-lt:#3a1217;--red-soft:rgba(255,77,90,0.1);
+  --green:#00cc6a;--green-lt:#0a2e1c;--green-soft:rgba(0,204,106,0.1);
+  --gold:#f0b429;--gold-lt:#2a1c00;--gold-soft:rgba(240,180,41,0.1);
+  --purple:#8f6fff;--purple-lt:#1e1040;--teal:#00c9a8;--teal-lt:#06241e;
+  --shadow:0 1px 4px rgba(0,0,0,0.3),0 4px 16px rgba(0,0,0,0.2);
+  --shadow-lg:0 8px 40px rgba(0,0,0,0.4);--shadow-accent:0 4px 24px rgba(77,121,255,0.3);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .3s,color .3s;font-size:14px;}
 
-  <style>
-    /* ── Tokens ── */
-    :root {
-      --bg:        #f0f2f7;
-      --surface:   #ffffff;
-      --surface2:  #f7f8fc;
-      --border:    #e2e5ef;
-      --text:      #0f1623;
-      --muted:     #6b7490;
-      --accent:    #1a4fff;
-      --accent-lt: #dce7ff;
-      --red:       #e8253a;
-      --red-lt:    #fde8ea;
-      --green:     #00a855;
-      --green-lt:  #d6f5e6;
-      --gold:      #c8930a;
-      --gold-lt:   #fef3d6;
-      --radius:    12px;
-      --shadow:    0 2px 12px rgba(15,22,35,0.07);
-      --shadow-lg: 0 8px 32px rgba(15,22,35,0.12);
-    }
+/* HEADER */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;align-items:center;justify-content:space-between;height:60px;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+.logo{display:flex;align-items:center;gap:10px;}
+.logo-mark{width:34px;height:34px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:var(--shadow-accent);}
+.logo-text{font-size:14px;font-weight:800;letter-spacing:-.03em;}
+.logo-text em{color:var(--accent);font-style:normal;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.hbtn{height:34px;border:1px solid var(--border);background:var(--surface2);border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;gap:6px;padding:0 12px;font-size:12px;font-weight:600;font-family:'Inter',sans-serif;color:var(--text2);transition:all .15s;}
+.hbtn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+.hbtn.danger:hover{border-color:var(--red);color:var(--red);background:var(--red-soft);}
 
-    .dark {
-      --bg:        #0b0f1a;
-      --surface:   #141927;
-      --surface2:  #1b2236;
-      --border:    #252d42;
-      --text:      #e8ecf7;
-      --muted:     #7a85a3;
-      --accent:    #4d79ff;
-      --accent-lt: #1a2a55;
-      --red:       #ff4d5a;
-      --red-lt:    #3a1217;
-      --green:     #00cc6a;
-      --green-lt:  #0d2e1c;
-      --gold:      #f0b429;
-      --gold-lt:   #332200;
-    }
+/* NAV */
+nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;display:flex;gap:2px;position:sticky;top:60px;z-index:90;}
+.nav-tab{display:flex;align-items:center;gap:7px;padding:14px 14px 12px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;background:none;border-left:none;border-right:none;border-top:none;font-family:'Inter',sans-serif;}
+.nav-tab:hover{color:var(--text2);}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+/* MAIN */
+main{max-width:1060px;margin:0 auto;padding:28px 20px 80px;}
+.view{display:none;}.view.active{display:block;}
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      transition: background 0.3s, color 0.3s;
-    }
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--accent) 0%,#0e2fb5 100%);border-radius:20px;padding:28px 32px;display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;box-shadow:var(--shadow-accent);color:#fff;flex-wrap:wrap;gap:20px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-60px;right:-40px;width:220px;height:220px;background:rgba(255,255,255,0.05);border-radius:50%;}
+.hero::after{content:'';position:absolute;bottom:-80px;right:80px;width:160px;height:160px;background:rgba(255,255,255,0.04);border-radius:50%;}
+.hero-left{z-index:1;}
+.hero-eyebrow{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.65;margin-bottom:6px;}
+.hero-gpa{font-family:'JetBrains Mono',monospace;font-size:56px;font-weight:700;line-height:1;letter-spacing:-.04em;}
+.hero-label{font-size:13px;opacity:.7;margin-top:6px;}
+.hero-stats{display:flex;gap:24px;margin-top:16px;z-index:1;}
+.hero-stat{display:flex;flex-direction:column;gap:2px;}
+.hero-stat-val{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;}
+.hero-stat-key{font-size:10px;opacity:.6;text-transform:uppercase;letter-spacing:.06em;}
+.hero-ring{z-index:1;flex-shrink:0;position:relative;width:104px;height:104px;}
+.hero-ring svg{transform:rotate(-90deg);}
+.hero-ring-label{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:700;color:#fff;}
 
-    /* ── Header ── */
-    header {
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 0 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 64px;
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      box-shadow: var(--shadow);
-    }
+/* YEAR PILLS */
+.year-row{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap;}
+.year-pill{padding:7px 18px;border-radius:30px;border:1px solid var(--border);background:var(--surface);color:var(--muted);font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif;letter-spacing:.01em;}
+.year-pill:hover{border-color:var(--accent);color:var(--accent);}
+.year-pill.active{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(26,79,255,.3);}
 
-    .logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+/* SEMESTER CARD */
+.sem-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:18px;overflow:hidden;box-shadow:var(--shadow);}
+.sem-head{padding:14px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);background:var(--surface2);flex-wrap:wrap;gap:10px;}
+.sem-title{font-size:13px;font-weight:800;letter-spacing:-.01em;}
+.sem-meta{display:flex;align-items:center;gap:10px;}
+.gpa-badge{font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:4px 12px;border-radius:20px;background:var(--accent-soft);color:var(--accent);min-width:88px;text-align:center;border:1px solid rgba(26,79,255,.15);}
+.prog-wrap{width:72px;}
+.prog-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.prog-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .4s ease;}
+.prog-pct{font-size:10px;color:var(--muted);font-weight:600;text-align:right;margin-top:3px;}
+.clear-btn{font-size:11px;font-weight:600;color:var(--muted);background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.clear-btn:hover{color:var(--red);border-color:var(--red);}
 
-    .logo-icon {
-      width: 36px;
-      height: 36px;
-      background: var(--accent);
-      border-radius: 9px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
+/* TABLE */
+table{width:100%;border-collapse:collapse;}
+thead th{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:9px 16px;text-align:left;border-bottom:1px solid var(--border);background:var(--surface2);}
+thead th:nth-child(2),thead th:nth-child(3){text-align:center;}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--surface2);}
+td{padding:10px 16px;vertical-align:middle;}
+.course-cell{display:flex;align-items:center;gap:10px;}
+.course-emoji{width:28px;height:28px;border-radius:7px;background:var(--surface3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.course-name{font-size:13px;font-weight:500;}
+.credits-cell{text-align:center;}
+.credit-pill{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--muted);background:var(--surface3);border:1px solid var(--border);border-radius:20px;padding:2px 9px;}
+.grade-cell{text-align:center;}
+.grade-select{appearance:none;-webkit-appearance:none;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;padding:6px 26px 6px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7490' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 9px center;color:var(--text);cursor:pointer;transition:border-color .15s,box-shadow .15s;min-width:78px;}
+.grade-select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.grade-select.gA{border-color:var(--green);color:var(--green);background-color:var(--green-soft);}
+.grade-select.gB{border-color:var(--accent);color:var(--accent);background-color:var(--accent-soft);}
+.grade-select.gC{border-color:var(--gold);color:var(--gold);background-color:var(--gold-soft);}
+.grade-select.gD,.grade-select.gF{border-color:var(--red);color:var(--red);background-color:var(--red-soft);}
 
-    .logo-text {
-      font-size: 15px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      color: var(--text);
-    }
+/* ANALYTICS */
+.section-title{font-size:16px;font-weight:800;margin-bottom:16px;letter-spacing:-.02em;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow);}
+.stat-card-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;font-size:15px;}
+.stat-card-val{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;line-height:1;}
+.stat-card-key{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+.chart-card h3{font-size:13px;font-weight:700;color:var(--text2);margin-bottom:16px;}
+.chart-wrap{position:relative;height:220px;}
 
-    .logo-text span {
-      color: var(--accent);
-    }
+/* FAB */
+.fab{position:fixed;bottom:22px;right:22px;background:#25D366;color:#fff;border-radius:50px;padding:11px 18px;font-size:13px;font-weight:700;font-family:'Inter',sans-serif;box-shadow:0 4px 20px rgba(37,211,102,.4);z-index:200;display:flex;align-items:center;gap:7px;text-decoration:none;transition:transform .15s,box-shadow .15s;}
+.fab:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(37,211,102,.5);}
 
-    .header-actions {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-
-    .icon-btn {
-      width: 36px;
-      height: 36px;
-      border: 1px solid var(--border);
-      background: var(--surface2);
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      transition: border-color 0.15s, background 0.15s;
-      color: var(--text);
-    }
-
-    .icon-btn:hover { border-color: var(--accent); background: var(--accent-lt); }
-
-    .reset-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 0 14px;
-      height: 36px;
-      border: 1px solid var(--red-lt);
-      background: var(--red-lt);
-      color: var(--red);
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      font-family: 'Inter', sans-serif;
-      transition: background 0.15s, border-color 0.15s;
-    }
-
-    .reset-btn:hover { background: var(--red); color: #fff; border-color: var(--red); }
-
-    /* ── Main layout ── */
-    main {
-      max-width: 1040px;
-      margin: 0 auto;
-      padding: 32px 24px 100px;
-    }
-
-    /* ── CGPA hero card ── */
-    .cgpa-card {
-      background: var(--accent);
-      border-radius: 18px;
-      padding: 28px 32px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 28px;
-      box-shadow: 0 8px 32px rgba(26,79,255,0.25);
-      color: #fff;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .cgpa-left { display: flex; flex-direction: column; gap: 4px; }
-
-    .cgpa-label {
-      font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      opacity: 0.75;
-    }
-
-    .cgpa-value {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 52px;
-      font-weight: 600;
-      line-height: 1;
-      letter-spacing: -0.03em;
-    }
-
-    .cgpa-sub { font-size: 13px; opacity: 0.7; margin-top: 4px; }
-
-    .cgpa-ring {
-      position: relative;
-      width: 100px;
-      height: 100px;
-      flex-shrink: 0;
-    }
-
-    .cgpa-ring svg { transform: rotate(-90deg); }
-
-    .cgpa-ring-label {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 18px;
-      font-weight: 600;
-      color: #fff;
-    }
-
-    /* ── Year selector ── */
-    .year-nav {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 28px;
-      flex-wrap: wrap;
-    }
-
-    .year-tab {
-      padding: 8px 18px;
-      border-radius: 30px;
-      border: 1px solid var(--border);
-      background: var(--surface);
-      color: var(--muted);
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.15s;
-      font-family: 'Inter', sans-serif;
-    }
-
-    .year-tab:hover { border-color: var(--accent); color: var(--accent); }
-    .year-tab.active { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(26,79,255,0.3); }
-
-    /* ── Semester card ── */
-    .semester-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      margin-bottom: 20px;
-      overflow: hidden;
-      box-shadow: var(--shadow);
-    }
-
-    .semester-header {
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface2);
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .semester-title {
-      font-size: 14px;
-      font-weight: 700;
-      letter-spacing: -0.01em;
-    }
-
-    .semester-meta {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .gpa-badge {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 4px 12px;
-      border-radius: 20px;
-      background: var(--accent-lt);
-      color: var(--accent);
-      min-width: 90px;
-      text-align: center;
-      transition: background 0.2s, color 0.2s;
-    }
-
-    .clear-sem-btn {
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--muted);
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 4px 10px;
-      cursor: pointer;
-      font-family: 'Inter', sans-serif;
-      transition: color 0.15s, border-color 0.15s;
-    }
-
-    .clear-sem-btn:hover { color: var(--red); border-color: var(--red); }
-
-    /* ── Course table ── */
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    thead th {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: var(--muted);
-      padding: 10px 16px;
-      text-align: left;
-      border-bottom: 1px solid var(--border);
-      background: var(--surface2);
-    }
-
-    thead th:nth-child(2),
-    thead th:nth-child(3) { text-align: center; }
-
-    tbody tr {
-      border-bottom: 1px solid var(--border);
-      transition: background 0.1s;
-    }
-
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: var(--surface2); }
-
-    td {
-      padding: 11px 16px;
-      vertical-align: middle;
-    }
-
-    .course-cell {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .course-emoji {
-      width: 28px;
-      height: 28px;
-      border-radius: 7px;
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 14px;
-      flex-shrink: 0;
-    }
-
-    .course-name {
-      font-size: 13px;
-      font-weight: 500;
-      line-height: 1.3;
-    }
-
-    .credits-cell {
-      text-align: center;
-    }
-
-    .credit-pill {
-      display: inline-block;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--muted);
-      background: var(--surface2);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 2px 10px;
-    }
-
-    .grade-cell { text-align: center; }
-
-    .grade-select {
-      appearance: none;
-      -webkit-appearance: none;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 6px 28px 6px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%236b7490' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px center;
-      color: var(--text);
-      cursor: pointer;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      min-width: 80px;
-    }
-
-    .grade-select:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 3px var(--accent-lt);
-    }
-
-    .grade-select.graded-A { border-color: var(--green); color: var(--green); background-color: var(--green-lt); }
-    .grade-select.graded-B { border-color: var(--accent); color: var(--accent); background-color: var(--accent-lt); }
-    .grade-select.graded-C { border-color: var(--gold); color: var(--gold); background-color: var(--gold-lt); }
-    .grade-select.graded-D { border-color: var(--red); color: var(--red); background-color: var(--red-lt); }
-    .grade-select.graded-F { border-color: var(--red); color: var(--red); background-color: var(--red-lt); }
-
-    /* ── WhatsApp FAB ── */
-    .fab {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
-      background: #25D366;
-      color: #fff;
-      border-radius: 50px;
-      padding: 12px 20px;
-      font-size: 14px;
-      font-weight: 600;
-      font-family: 'Inter', sans-serif;
-      box-shadow: 0 4px 20px rgba(37,211,102,0.4);
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      text-decoration: none;
-      transition: transform 0.15s, box-shadow 0.15s;
-    }
-
-    .fab:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 28px rgba(37,211,102,0.5);
-    }
-
-    /* ── Progress bar inside semester header ── */
-    .progress-track {
-      height: 3px;
-      background: var(--border);
-      border-radius: 2px;
-      overflow: hidden;
-      width: 80px;
-    }
-
-    .progress-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 2px;
-      transition: width 0.4s ease;
-    }
-
-    @media (max-width: 600px) {
-      header { padding: 0 16px; }
-      main { padding: 20px 12px 80px; }
-      .cgpa-value { font-size: 40px; }
-      .cgpa-card { padding: 20px; }
-      .cgpa-ring { display: none; }
-      .year-tab { font-size: 12px; padding: 6px 14px; }
-    }
-  </style>
+@media(max-width:700px){
+  header{padding:0 14px;}nav{padding:0 14px;}main{padding:16px 12px 80px;}
+  .hero-gpa{font-size:42px;}.hero-ring{display:none;}
+  .charts-grid{grid-template-columns:1fr;}
+}
+</style>
 </head>
 <body>
 
-  <!-- Header -->
-  <header>
-    <div class="logo">
-      <div class="logo-icon">🩺</div>
-      <div class="logo-text">MTI <span>MEDSPACE</span></div>
-    </div>
-    <div class="header-actions">
-      <button class="icon-btn" onclick="toggleDarkMode()" title="Toggle dark mode">🌙</button>
-      <button class="reset-btn" onclick="resetAllData()">✕ Reset All</button>
-    </div>
-  </header>
+<header>
+  <div class="logo">
+    <div class="logo-mark">🩺</div>
+    <div class="logo-text">MTI <em>MEDSPACE</em></div>
+  </div>
+  <div class="header-right">
+    <button class="hbtn" onclick="toggleDark()">
+      <svg id="dark-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      <span id="dark-label">Dark</span>
+    </button>
+    <button class="hbtn danger" onclick="resetAll()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      Reset All
+    </button>
+  </div>
+</header>
 
-  <main>
+<nav>
+  <button class="nav-tab active" onclick="showView('grades')" id="tab-grades">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+    Grades
+  </button>
+  <button class="nav-tab" onclick="showView('stats')" id="tab-stats">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Analytics
+  </button>
+</nav>
 
-    <!-- CGPA Hero -->
-    <div class="cgpa-card">
-      <div class="cgpa-left">
-        <div class="cgpa-label">Cumulative GPA</div>
-        <div class="cgpa-value" id="cgpaValue">—</div>
-        <div class="cgpa-sub" id="cgpaSub">Enter grades to calculate</div>
+<main>
+
+<!-- GRADES VIEW -->
+<div class="view active" id="view-grades">
+  <div class="hero">
+    <div class="hero-left">
+      <div class="hero-eyebrow">Cumulative GPA</div>
+      <div class="hero-gpa" id="heroGPA">—</div>
+      <div class="hero-label" id="heroLabel">Enter grades to get started</div>
+      <div class="hero-stats">
+        <div class="hero-stat">
+          <div class="hero-stat-val" id="heroCredits">0</div>
+          <div class="hero-stat-key">Credits</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val" id="heroCourses">0</div>
+          <div class="hero-stat-key">Courses</div>
+        </div>
+        <div class="hero-stat">
+          <div class="hero-stat-val" id="heroYears">5</div>
+          <div class="hero-stat-key">Years</div>
+        </div>
       </div>
-      <div class="cgpa-ring">
-        <svg width="100" height="100" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="8"/>
-          <circle cx="50" cy="50" r="42" fill="none" stroke="#fff" stroke-width="8"
-            stroke-dasharray="263.9" stroke-dashoffset="263.9"
-            stroke-linecap="round" id="cgpaArc" style="transition: stroke-dashoffset 0.6s ease"/>
-        </svg>
-        <div class="cgpa-ring-label" id="cgpaRingLabel">—</div>
-      </div>
     </div>
-
-    <!-- Year tabs -->
-    <div class="year-nav" id="yearNav">
-      <button class="year-tab active" onclick="switchYear(1)" id="tab-1">Year 1</button>
-      <button class="year-tab" onclick="switchYear(2)" id="tab-2">Year 2</button>
-      <button class="year-tab" onclick="switchYear(3)" id="tab-3">Year 3</button>
-      <button class="year-tab" onclick="switchYear(4)" id="tab-4">Year 4</button>
-      <button class="year-tab" onclick="switchYear(5)" id="tab-5">Year 5</button>
+    <div class="hero-ring">
+      <svg width="104" height="104" viewBox="0 0 104 104">
+        <circle cx="52" cy="52" r="44" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="8"/>
+        <circle cx="52" cy="52" r="44" fill="none" stroke="#fff" stroke-width="8"
+          stroke-dasharray="276.5" stroke-dashoffset="276.5"
+          stroke-linecap="round" id="heroArc" style="transition:stroke-dashoffset .6s ease"/>
+      </svg>
+      <div class="hero-ring-label" id="heroArcLabel">—</div>
     </div>
+  </div>
 
-    <!-- Semester tables -->
-    <div id="yearContainer"></div>
+  <div class="year-row" id="yearRow"></div>
+  <div id="yearContent"></div>
+</div>
 
-  </main>
+<!-- ANALYTICS VIEW -->
+<div class="view" id="view-stats">
+  <div class="section-title">Analytics</div>
+  <div class="stat-grid" id="statsCards"></div>
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>GPA by Year</h3>
+      <div class="chart-wrap"><canvas id="chartYear" role="img" aria-label="GPA per year bar chart">GPA per year.</canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Grade Distribution</h3>
+      <div class="chart-wrap"><canvas id="chartDist" role="img" aria-label="Grade distribution donut chart">Grade distribution across all courses.</canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Credits by Year</h3>
+      <div class="chart-wrap"><canvas id="chartCredits" role="img" aria-label="Credits by year bar chart">Credits per year.</canvas></div>
+    </div>
+    <div class="chart-card">
+      <h3>Progress Overview</h3>
+      <div class="chart-wrap"><canvas id="chartProg" role="img" aria-label="Graded vs remaining donut chart">Graded vs remaining courses.</canvas></div>
+    </div>
+  </div>
+</div>
 
-  <!-- WhatsApp FAB -->
-  <a href="https://wa.me/201122876666?text=Hi%20I%20have%20feedback%20about%20the%20MTI%20MED%20GPA%20Calculator"
-     class="fab" target="_blank" title="Send Feedback via WhatsApp">
-    💬 <span>Feedback</span>
-  </a>
+</main>
 
-  <script>
-    /* ── Firebase ── */
-    const firebaseConfig = {
-      apiKey: "AIzaSyCb4SE2teLRIDEk3dY077a32xuPRuNlWr4",
-      authDomain: "mti-med-gpa-calc.firebaseapp.com",
-      projectId: "mti-med-gpa-calc",
-      storageBucket: "mti-med-gpa-calc.appspot.com",
-      messagingSenderId: "545061029336",
-      appId: "1:545061029336:web:7c73245baf0e3593639ead",
-      databaseURL: "https://mti-med-gpa-calc-default-rtdb.firebaseio.com"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+<a href="https://wa.me/201122876666?text=Hi%20I%20have%20feedback%20about%20MTI%20MedSpace" class="fab" target="_blank">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  Feedback
+</a>
 
-    /* ── GPA data ── */
-    const gpaScale = {
-      'A+': 4.00, 'A': 3.67, 'B+': 3.33, 'B': 3.00,
-      'C+': 2.67, 'C': 2.33, 'D': 2.00, 'F': 0.00
-    };
+<script>
+const firebaseConfig={apiKey:"AIzaSyCb4SE2teLRIDEk3dY077a32xuPRuNlWr4",authDomain:"mti-med-gpa-calc.firebaseapp.com",projectId:"mti-med-gpa-calc",storageBucket:"mti-med-gpa-calc.appspot.com",messagingSenderId:"545061029336",appId:"1:545061029336:web:7c73245baf0e3593639ead",databaseURL:"https://mti-med-gpa-calc-default-rtdb.firebaseio.com"};
+firebase.initializeApp(firebaseConfig);
+const db=firebase.database();
 
-    const emojiMap = {
-      'Anatomy': '🦴', 'Physiology': '🤸🏻‍♂️', 'Histology': '🔬', 'Biochemistry': '⚗️',
-      'Immunology': '🛡️', 'Genetics': '🧬', 'General Pathology': '🧫',
-      'General Pharma': '💊', 'Hematology': '🩸', 'ECE': '🧑‍🏫',
-      'MSK 1': '💪', 'Neuroscience': '🧠', 'MSK 2': '🦿',
-      'Respiratory': '🫁', 'CVS': '❤️', 'ECE II': '🧑‍🏫', 'GIT': '🍽️',
-      'Urinary system': '💧', 'Reproductive system': '🧬', 'ECE III': '🧑‍🏫',
-      'CNS': '🧠', 'MSK 3': '🏋️', 'Endocrine': '🧪', 'ECE IV': '🧑‍🏫',
-      'Medical Professionalism I': '📘', 'Ophthalmology': '👁️', 'E.N.T': '👂',
-      'Community': '🌍', 'Investigative': '🔍', 'Pediatrics I': '🧒',
-      'OB&GYN I': '🤰', 'Forensics': '⚖️', 'Medicine I': '💊',
-      'Medical professionalism IV': '📗', 'Pediatrics II': '👶', 'OB&GYN II': '🍼',
-      'Surgery I': '🔪', 'Research Methodology I': '📑', 'Medicine II': '💉',
-      'Surgery II': '🩺', 'Medicine III': '💊', 'Surgery III': '🏥',
-      'Medicine IV': '💉', 'Psychiatry': '🧠', 'Family Medicine': '👨‍👩‍👧',
-      'Emergency & Trauma': '🚨', 'Research Methodology II': '📄',
-      'Medical professionalism V': '📙'
-    };
+const gpaScale={'A+':4.00,'A':3.67,'B+':3.33,'B':3.00,'C+':2.67,'C':2.33,'D':2.00,'F':0.00};
+const emojiMap={Anatomy:'🦴',Physiology:'🤸🏻‍♂️',Histology:'🔬',Biochemistry:'⚗️',Immunology:'🛡️',Genetics:'🧬','General Pathology':'🧫','General Pharma':'💊',Hematology:'🩸',ECE:'🧑‍🏫','MSK 1':'💪',Neuroscience:'🧠','MSK 2':'🦿',Respiratory:'🫁',CVS:'❤️','ECE II':'🧑‍🏫',GIT:'🍽️','Urinary system':'💧','Reproductive system':'🧬','ECE III':'🧑‍🏫',CNS:'🧠','MSK 3':'🏋️',Endocrine:'🧪','ECE IV':'🧑‍🏫','Medical Professionalism I':'📘',Ophthalmology:'👁️','E.N.T':'👂',Community:'🌍',Investigative:'🔍','Pediatrics I':'🧒','OB&GYN I':'🤰',Forensics:'⚖️','Medicine I':'💊','Medical professionalism IV':'📗','Pediatrics II':'👶','OB&GYN II':'🍼','Surgery I':'🔪','Research Methodology I':'📑','Medicine II':'💉','Surgery II':'🩺','Medicine III':'💊','Surgery III':'🏥','Medicine IV':'💉',Psychiatry:'🧠','Family Medicine':'👨‍👩‍👧','Emergency & Trauma':'🚨','Research Methodology II':'📄','Medical professionalism V':'📙'};
 
-    const courseData = {
-      1: [
-        { semester: 1, courses: [
-          { name: 'Anatomy', credits: 3 }, { name: 'Physiology', credits: 2 },
-          { name: 'Histology', credits: 2 }, { name: 'Genetics', credits: 2 },
-          { name: 'Biochemistry', credits: 4 }, { name: 'Immunology', credits: 2 },
-        ]},
-        { semester: 2, courses: [
-          { name: 'General Pathology', credits: 3 }, { name: 'General Pharma', credits: 2 },
-          { name: 'Hematology', credits: 4 }, { name: 'MSK 1', credits: 5 },
-          { name: 'Neuroscience', credits: 2 }, { name: 'Medical Professionalism I', credits: 1 },
-          { name: 'ECE', credits: 1 },
-        ]},
-      ],
-      2: [
-        { semester: 1, courses: [
-          { name: 'MSK 2', credits: 4 }, { name: 'Respiratory', credits: 5 },
-          { name: 'CVS', credits: 7 }, { name: '👨🏻‍🔬 Psychology I', credits: 1 },
-          { name: 'ECE II', credits: 1 },
-        ]},
-        { semester: 2, courses: [
-          { name: 'GIT', credits: 7 }, { name: 'Urinary system', credits: 4 },
-          { name: 'Reproductive system', credits: 4 }, { name: 'ECE III', credits: 1 },
-        ]},
-      ],
-      3: [
-        { semester: 1, courses: [
-          { name: 'MSK 3', credits: 5 }, { name: 'Endocrine', credits: 4 },
-          { name: 'CNS', credits: 8 }, { name: '👨🏻‍🔬 Psychology II', credits: 1 },
-          { name: 'ECE IV', credits: 1 },
-        ]},
-        { semester: 2, courses: [
-          { name: 'Ophthalmology', credits: 6 }, { name: 'E.N.T', credits: 6 },
-          { name: 'Community', credits: 5 }, { name: 'Investigative', credits: 3 },
-        ]},
-      ],
-      4: [
-        { semester: 1, courses: [
-          { name: 'Pediatrics I', credits: 6 }, { name: 'OB&GYN I', credits: 6 },
-          { name: 'Forensics', credits: 6 }, { name: 'Medicine I', credits: 6 },
-          { name: 'Medical professionalism IV', credits: 1 },
-        ]},
-        { semester: 2, courses: [
-          { name: 'Pediatrics II', credits: 6 }, { name: 'OB&GYN II', credits: 6 },
-          { name: 'Surgery I', credits: 8 }, { name: 'Research Methodology I', credits: 2 },
-        ]},
-      ],
-      5: [
-        { courses: [
-          { name: 'Medicine II', credits: 7 }, { name: 'Surgery II', credits: 8 },
-          { name: 'Medicine III', credits: 7 }, { name: 'Surgery III', credits: 8 },
-          { name: 'Medicine IV', credits: 7 }, { name: 'Psychiatry', credits: 3 },
-          { name: 'Family Medicine', credits: 3 }, { name: 'Emergency & Trauma', credits: 3 },
-          { name: 'Research Methodology II', credits: 1 },
-          { name: 'Medical professionalism V', credits: 1 },
-        ]},
-      ]
-    };
+const courseData={1:[{semester:1,courses:[{name:'Anatomy',credits:3},{name:'Physiology',credits:2},{name:'Histology',credits:2},{name:'Genetics',credits:2},{name:'Biochemistry',credits:4},{name:'Immunology',credits:2}]},{semester:2,courses:[{name:'General Pathology',credits:3},{name:'General Pharma',credits:2},{name:'Hematology',credits:4},{name:'MSK 1',credits:5},{name:'Neuroscience',credits:2},{name:'Medical Professionalism I',credits:1},{name:'ECE',credits:1}]}],2:[{semester:1,courses:[{name:'MSK 2',credits:4},{name:'Respiratory',credits:5},{name:'CVS',credits:7},{name:'👨🏻‍🔬 Psychology I',credits:1},{name:'ECE II',credits:1}]},{semester:2,courses:[{name:'GIT',credits:7},{name:'Urinary system',credits:4},{name:'Reproductive system',credits:4},{name:'ECE III',credits:1}]}],3:[{semester:1,courses:[{name:'MSK 3',credits:5},{name:'Endocrine',credits:4},{name:'CNS',credits:8},{name:'👨🏻‍🔬 Psychology II',credits:1},{name:'ECE IV',credits:1}]},{semester:2,courses:[{name:'Ophthalmology',credits:6},{name:'E.N.T',credits:6},{name:'Community',credits:5},{name:'Investigative',credits:3}]}],4:[{semester:1,courses:[{name:'Pediatrics I',credits:6},{name:'OB&GYN I',credits:6},{name:'Forensics',credits:6},{name:'Medicine I',credits:6},{name:'Medical professionalism IV',credits:1}]},{semester:2,courses:[{name:'Pediatrics II',credits:6},{name:'OB&GYN II',credits:6},{name:'Surgery I',credits:8},{name:'Research Methodology I',credits:2}]}],5:[{semester:1,courses:[{name:'Medicine II',credits:7},{name:'Surgery II',credits:8},{name:'Medicine III',credits:7},{name:'Surgery III',credits:8},{name:'Medicine IV',credits:7},{name:'Psychiatry',credits:3},{name:'Family Medicine',credits:3},{name:'Emergency & Trauma',credits:3},{name:'Research Methodology II',credits:1},{name:'Medical professionalism V',credits:1}]}]};
 
-    let activeYear = 1;
+let activeYear=1;
+let chartYear=null,chartDist=null,chartCredits=null,chartProg=null;
 
-    /* ── Grade colour class ── */
-    function gradeClass(g) {
-      if (!g) return '';
-      if (g === 'A+' || g === 'A') return 'graded-A';
-      if (g === 'B+' || g === 'B') return 'graded-B';
-      if (g === 'C+' || g === 'C') return 'graded-C';
-      if (g === 'D') return 'graded-D';
-      if (g === 'F') return 'graded-F';
-      return '';
+function gc(g){if(!g)return '';if(g==='A+'||g==='A')return 'gA';if(g==='B+'||g==='B')return 'gB';if(g==='C+'||g==='C')return 'gC';return 'gD';}
+function grades(){return JSON.parse(localStorage.getItem('grades')||'{}');}
+function saveGrades(g){localStorage.setItem('grades',JSON.stringify(g));}
+
+function calcSemGPA(year,sem){
+  const g=grades();let pts=0,creds=0;
+  courseData[year][sem-1].courses.forEach(c=>{const v=g[`${year}-${sem}-${c.name}`];if(v&&gpaScale[v]!==undefined){creds+=c.credits;pts+=gpaScale[v]*c.credits;}});
+  return creds?(pts/creds):null;
+}
+
+function calcCGPA(){
+  const g=grades();let pts=0,creds=0;
+  for(const y in courseData)courseData[y].forEach((sem,i)=>sem.courses.forEach(c=>{const v=g[`${y}-${i+1}-${c.name}`];if(v&&gpaScale[v]!==undefined){creds+=c.credits;pts+=gpaScale[v]*c.credits;}}));
+  return creds?(pts/creds):null;
+}
+
+function getStats(){
+  const g=grades();
+  let totalCreds=0,gradedCreds=0,totalCourses=0,gradedCourses=0,qPoints=0,As=0,Bs=0,Cs=0,DFs=0;
+  for(const y in courseData)courseData[y].forEach((sem,i)=>sem.courses.forEach(c=>{
+    totalCourses++;totalCreds+=c.credits;
+    const v=g[`${y}-${i+1}-${c.name}`];
+    if(v&&gpaScale[v]!==undefined){gradedCourses++;gradedCreds+=c.credits;qPoints+=gpaScale[v]*c.credits;
+      if(v==='A+'||v==='A')As++;else if(v==='B+'||v==='B')Bs++;else if(v==='C+'||v==='C')Cs++;else DFs++;}
+  }));
+  return{totalCreds,gradedCreds,remainCreds:totalCreds-gradedCreds,totalCourses,gradedCourses,remainCourses:totalCourses-gradedCourses,qPoints,As,Bs,Cs,DFs};
+}
+
+function updateHero(){
+  const cgpa=calcCGPA();const v=cgpa?parseFloat(cgpa):null;
+  document.getElementById('heroGPA').textContent=v?v.toFixed(2):'—';
+  document.getElementById('heroArcLabel').textContent=v?v.toFixed(1):'—';
+  const s=getStats();
+  document.getElementById('heroCredits').textContent=s.gradedCreds;
+  document.getElementById('heroCourses').textContent=s.gradedCourses;
+  let lbl='Enter grades to get started';
+  if(v){if(v>=3.67)lbl='A territory 🏆';else if(v>=3.00)lbl='B territory 👍';else if(v>=2.33)lbl= 'C territory 📖';else lbl='keep pushing 💪';}
+  document.getElementById('heroLabel').textContent=lbl;
+  const arc=document.getElementById('heroArc');
+  if(arc)arc.style.strokeDashoffset=v?276.5-(v/4)*276.5:276.5;
+}
+
+function buildYearTabs(){
+  const row=document.getElementById('yearRow');row.innerHTML='';
+  for(let y=1;y<=5;y++){
+    const b=document.createElement('button');
+    b.className='year-pill'+(y===activeYear?' active':'');
+    b.textContent=`Year ${y}`;b.onclick=()=>switchYear(y);row.appendChild(b);
+  }
+}
+
+function switchYear(y){
+  activeYear=y;buildYearTabs();
+  const g=grades();
+  const container=document.getElementById('yearContent');container.innerHTML='';
+  courseData[y].forEach((sem,idx)=>{
+    const semNum=idx+1;const isY5=y===5;
+    const title=isY5?'Year 5':`Year ${y} · Semester ${semNum}`;
+    const total=sem.courses.length;
+    const filled=sem.courses.filter(c=>g[`${y}-${semNum}-${c.name}`]).length;
+    const pct=total?Math.round(filled/total*100):0;
+    const gpaVal=calcSemGPA(y,semNum);
+    const gpaText=gpaVal?`GPA ${gpaVal.toFixed(2)}`:'GPA —';
+
+    const card=document.createElement('div');card.className='sem-card';
+    const hdr=document.createElement('div');hdr.className='sem-head';
+    hdr.innerHTML=`<div class="sem-title">${title}</div>
+    <div class="sem-meta">
+      <div class="prog-wrap"><div class="prog-track"><div class="prog-fill" id="prog-${y}-${semNum}" style="width:${pct}%"></div></div><div class="prog-pct">${pct}%</div></div>
+      <div class="gpa-badge" id="gpa-${y}-${semNum}">${gpaText}</div>
+      <button class="clear-btn" onclick="${isY5?'clearYear5()':'clearSem('+y+','+semNum+')'}">Clear</button>
+    </div>`;
+    card.appendChild(hdr);
+
+    const tbl=document.createElement('table');
+    tbl.innerHTML=`<thead><tr><th style="width:55%">Course</th><th style="width:15%">Credits</th><th style="width:30%">Grade</th></tr></thead>`;
+    const tbody=document.createElement('tbody');
+    sem.courses.forEach(course=>{
+      const key=`${y}-${semNum}-${course.name}`;const saved=g[key]||'';
+      const emoji=emojiMap[course.name]||'📚';
+      const opts=Object.keys(gpaScale).map(gr=>`<option value="${gr}"${gr===saved?' selected':''}>${gr}</option>`).join('');
+      const tr=document.createElement('tr');
+      tr.innerHTML=`<td><div class="course-cell"><div class="course-emoji">${emoji}</div><div class="course-name">${course.name}</div></div></td>
+      <td class="credits-cell"><span class="credit-pill">${course.credits} cr</span></td>
+      <td class="grade-cell"><select class="grade-select ${gc(saved)}" data-year="${y}" data-sem="${semNum}" data-name="${course.name}" onchange="saveGrade(this)"><option value="">—</option>${opts}</select></td>`;
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);card.appendChild(tbl);container.appendChild(card);
+  });
+  updateHero();
+}
+
+function saveGrade(sel){
+  const{year,sem,name}=sel.dataset;
+  const g=grades();g[`${year}-${sem}-${name}`]=sel.value;saveGrades(g);
+  sel.className=`grade-select ${gc(sel.value)}`;
+  const semNum=parseInt(sem);const yr=parseInt(year);
+  const gv=calcSemGPA(yr,semNum);
+  const badge=document.getElementById(`gpa-${yr}-${semNum}`);
+  if(badge)badge.textContent=gv?`GPA ${gv.toFixed(2)}`:'GPA —';
+  const sem2=courseData[yr][semNum-1];
+  const total=sem2.courses.length;
+  const filled=sem2.courses.filter(c=>g[`${yr}-${semNum}-${c.name}`]).length;
+  const pct=total?Math.round(filled/total*100):0;
+  const prog=document.getElementById(`prog-${yr}-${semNum}`);
+  if(prog){prog.style.width=pct+'%';prog.nextElementSibling.textContent=pct+'%';}
+  updateHero();
+  if(year==="1"){
+    const s1=calcSemGPA(1,1),s2=calcSemGPA(1,2),cgpa=calcCGPA();
+    const allFilled=courseData[1].every((s,i)=>s.courses.every(c=>g[`1-${i+1}-${c.name}`]));
+    if(allFilled&&!localStorage.getItem('firstYearSubmitted')){
+      db.ref('firstYearGPAs').push({semester1GPA:s1,semester2GPA:s2,cgpa});
+      localStorage.setItem('firstYearSubmitted','true');
     }
+  }
+}
 
-    /* ── Render year ── */
-    function switchYear(year) {
-      year = year || activeYear;
-      activeYear = year;
+function clearSem(y,s){const g=grades();courseData[y][s-1].courses.forEach(c=>{delete g[`${y}-${s}-${c.name}`];});saveGrades(g);switchYear(activeYear);}
+function clearYear5(){const g=grades();courseData[5][0].courses.forEach(c=>{delete g[`5-1-${c.name}`];});saveGrades(g);switchYear(5);}
+function resetAll(){if(confirm('Reset all grades? This cannot be undone.')){localStorage.removeItem('grades');localStorage.removeItem('firstYearSubmitted');switchYear(activeYear);}}
 
-      // Update tabs
-      document.querySelectorAll('.year-tab').forEach((t, i) => {
-        t.classList.toggle('active', i + 1 === year);
-      });
+function renderStats(){
+  const cgpa=calcCGPA();const s=getStats();
+  const cards=[
+    {icon:'🎓',val:cgpa?parseFloat(cgpa).toFixed(2):'—',key:'CGPA',color:'var(--accent)'},
+    {icon:'📊',val:s.gradedCourses,key:'Courses Graded',color:'var(--green)'},
+    {icon:'📚',val:s.remainCourses,key:'Courses Left',color:'var(--gold)'},
+    {icon:'⭐',val:s.gradedCreds,key:'Credits Earned',color:'var(--purple)'},
+  ];
+  const grid=document.getElementById('statsCards');grid.innerHTML='';
+  cards.forEach(c=>{
+    const d=document.createElement('div');d.className='stat-card';
+    d.innerHTML=`<div class="stat-card-icon" style="background:color-mix(in srgb,${c.color} 12%,transparent)">${c.icon}</div>
+    <div class="stat-card-val" style="color:${c.color}">${c.val}</div><div class="stat-card-key">${c.key}</div>`;
+    grid.appendChild(d);
+  });
 
-      const container = document.getElementById('yearContainer');
-      container.innerHTML = '';
-      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
+  const isDark=document.body.classList.contains('dark');
+  const gridC=isDark?'rgba(255,255,255,0.06)':'rgba(0,0,0,0.06)';
+  const tickC=isDark?'#68789a':'#7a82a0';
+  const baseOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:gridC},ticks:{color:tickC,font:{family:'Inter',size:11}}},y:{grid:{color:gridC},ticks:{color:tickC,font:{family:'Inter',size:11}}}}};
 
-      courseData[year].forEach((sem, index) => {
-        const semNum = index + 1;
-        const isYear5 = String(year) === '5';
-        const title = isYear5 ? 'Year 5' : `Year ${year} · Semester ${semNum}`;
+  const yearLabels=['Year 1','Year 2','Year 3','Year 4','Year 5'];
+  const yearGPAs=[];
+  for(let y=1;y<=5;y++){
+    const g=grades();let pts=0,creds=0;
+    courseData[y].forEach((sem,i)=>sem.courses.forEach(c=>{const v=g[`${y}-${i+1}-${c.name}`];if(v&&gpaScale[v]!==undefined){creds+=c.credits;pts+=gpaScale[v]*c.credits;}}));
+    yearGPAs.push(creds?parseFloat((pts/creds).toFixed(2)):0);
+  }
 
-        // Count filled grades for progress
-        const total = sem.courses.length;
-        const filled = sem.courses.filter(c => grades[`${year}-${semNum}-${c.name}`]).length;
-        const pct = total ? Math.round(filled / total * 100) : 0;
+  if(chartYear)chartYear.destroy();
+  chartYear=new Chart(document.getElementById('chartYear').getContext('2d'),{type:'bar',data:{labels:yearLabels,datasets:[{label:'GPA',data:yearGPAs,backgroundColor:isDark?'rgba(77,121,255,0.75)':'rgba(26,79,255,0.78)',borderRadius:6}]},options:{...baseOpts,scales:{...baseOpts.scales,y:{...baseOpts.scales.y,min:0,max:4}}}});
 
-        const gpa = calculateGPA(String(year), semNum);
-        const gpaText = gpa ? `GPA ${gpa}` : 'GPA —';
+  if(chartDist)chartDist.destroy();
+  chartDist=new Chart(document.getElementById('chartDist').getContext('2d'),{type:'doughnut',data:{labels:['A/A+','B/B+','C/C+','D/F'],datasets:[{data:[s.As,s.Bs,s.Cs,s.DFs],backgroundColor:['#00a855','#1a4fff','#c8930a','#e0243a'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:tickC,font:{family:'Inter',size:11},boxWidth:12,padding:12}}}}});
 
-        // Card
-        const card = document.createElement('div');
-        card.className = 'semester-card';
+  const yearCreds=[];
+  for(let y=1;y<=5;y++){let tc=0;courseData[y].forEach(sem=>sem.courses.forEach(c=>tc+=c.credits));yearCreds.push(tc);}
+  if(chartCredits)chartCredits.destroy();
+  chartCredits=new Chart(document.getElementById('chartCredits').getContext('2d'),{type:'bar',data:{labels:yearLabels,datasets:[{label:'Credits',data:yearCreds,backgroundColor:isDark?'rgba(108,61,245,0.75)':'rgba(108,61,245,0.78)',borderRadius:6}]},options:baseOpts});
 
-        // Header
-        const hdr = document.createElement('div');
-        hdr.className = 'semester-header';
-        hdr.innerHTML = `
-          <div class="semester-title">${title}</div>
-          <div class="semester-meta">
-            <div class="progress-track"><div class="progress-fill" id="prog-${year}-${semNum}" style="width:${pct}%"></div></div>
-            <div class="gpa-badge" id="gpa-${year}-${semNum}">${gpaText}</div>
-            <button class="clear-sem-btn" onclick="${isYear5 ? 'clearYear()' : `clearSemester(${year},${semNum})`}">Clear</button>
-          </div>`;
-        card.appendChild(hdr);
+  if(chartProg)chartProg.destroy();
+  chartProg=new Chart(document.getElementById('chartProg').getContext('2d'),{type:'doughnut',data:{labels:['Graded','Remaining'],datasets:[{data:[s.gradedCourses,s.remainCourses],backgroundColor:[isDark?'#4d79ff':'#1a4fff',isDark?'#222c45':'#e0e3ef'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'bottom',labels:{color:tickC,font:{family:'Inter',size:11},boxWidth:12,padding:12}}}}});
+}
 
-        // Table
-        const table = document.createElement('table');
-        table.innerHTML = `<thead><tr>
-          <th style="width:55%">Course</th>
-          <th style="width:15%">Credits</th>
-          <th style="width:30%">Grade</th>
-        </tr></thead>`;
+function showView(v){
+  document.querySelectorAll('.view').forEach(el=>el.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(el=>el.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.getElementById('tab-'+v).classList.add('active');
+  if(v==='stats')renderStats();
+}
 
-        const tbody = document.createElement('tbody');
-        sem.courses.forEach(course => {
-          const key = `${year}-${semNum}-${course.name}`;
-          const savedGrade = grades[key] || '';
-          const emoji = emojiMap[course.name] || '📚';
-          const cleanName = course.name.replace(/^[^\w\s]+\s/, ''); // strip leading emoji if any
-          const options = Object.keys(gpaScale).map(g =>
-            `<option value="${g}" ${g === savedGrade ? 'selected' : ''}>${g}</option>`
-          ).join('');
+function toggleDark(){
+  document.body.classList.toggle('dark');
+  const dark=document.body.classList.contains('dark');
+  document.getElementById('dark-label').textContent=dark?'Light':'Dark';
+  document.getElementById('dark-icon').innerHTML=dark?'<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>':'<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+  localStorage.setItem('darkMode',dark);
+  if(document.getElementById('view-stats').classList.contains('active'))renderStats();
+}
 
-          const tr = document.createElement('tr');
-          tr.innerHTML = `
-            <td>
-              <div class="course-cell">
-                <div class="course-emoji">${emoji}</div>
-                <div class="course-name">${course.name}</div>
-              </div>
-            </td>
-            <td class="credits-cell"><span class="credit-pill">${course.credits} cr</span></td>
-            <td class="grade-cell">
-              <select class="grade-select ${gradeClass(savedGrade)}"
-                data-year="${year}" data-semester="${semNum}" data-name="${course.name}" data-credits="${course.credits}"
-                onchange="saveGrade(this)">
-                <option value="">—</option>${options}
-              </select>
-            </td>`;
-          tbody.appendChild(tr);
-        });
-
-        table.appendChild(tbody);
-        card.appendChild(table);
-        container.appendChild(card);
-      });
-
-      updateGPA();
-    }
-
-    /* ── Save grade ── */
-    function saveGrade(select) {
-      const { year, semester, name } = select.dataset;
-      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
-      grades[`${year}-${semester}-${name}`] = select.value;
-      localStorage.setItem('grades', JSON.stringify(grades));
-
-      // Update select colour
-      select.className = `grade-select ${gradeClass(select.value)}`;
-
-      updateGPA();
-
-      // Firebase first-year submission
-      if (year === "1") {
-        const sem1GPA = calculateGPA("1", 1);
-        const sem2GPA = calculateGPA("1", 2);
-        const fullCGPA = calculateCGPA();
-        const allFilled = courseData[1].every((sem, index) =>
-          sem.courses.every(course => grades[`1-${index + 1}-${course.name}`])
-        );
-        if (allFilled && !localStorage.getItem('firstYearSubmitted')) {
-          db.ref('firstYearGPAs').push({ semester1GPA: sem1GPA, semester2GPA: sem2GPA, cgpa: fullCGPA });
-          localStorage.setItem('firstYearSubmitted', 'true');
-        }
-      }
-    }
-
-    /* ── Calculations ── */
-    function calculateGPA(year, semester) {
-      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
-      let pts = 0, creds = 0;
-      courseData[year][semester - 1].courses.forEach(c => {
-        const g = grades[`${year}-${semester}-${c.name}`];
-        if (g && gpaScale[g] !== undefined) { creds += c.credits; pts += gpaScale[g] * c.credits; }
-      });
-      return creds ? (pts / creds).toFixed(2) : null;
-    }
-
-    function calculateCGPA() {
-      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
-      let pts = 0, creds = 0;
-      for (const year in courseData) {
-        courseData[year].forEach((semester, index) => {
-          semester.courses.forEach(c => {
-            const g = grades[`${year}-${index + 1}-${c.name}`];
-            if (g && gpaScale[g] !== undefined) { creds += c.credits; pts += gpaScale[g] * c.credits; }
-          });
-        });
-      }
-      return creds ? (pts / creds).toFixed(2) : null;
-    }
-
-    function updateGPA() {
-      // Update semester badges + progress bars
-      for (const year in courseData) {
-        const grades = JSON.parse(localStorage.getItem('grades') || '{}');
-        courseData[year].forEach((sem, index) => {
-          const semNum = index + 1;
-          const gpa = calculateGPA(year, semNum);
-          const badge = document.getElementById(`gpa-${year}-${semNum}`);
-          if (badge) badge.textContent = gpa ? `GPA ${gpa}` : 'GPA —';
-
-          const prog = document.getElementById(`prog-${year}-${semNum}`);
-          if (prog) {
-            const total = sem.courses.length;
-            const filled = sem.courses.filter(c => grades[`${year}-${semNum}-${c.name}`]).length;
-            prog.style.width = total ? (filled / total * 100) + '%' : '0%';
-          }
-        });
-      }
-
-      // Update CGPA hero
-      const cgpa = calculateCGPA();
-      const val = cgpa ? parseFloat(cgpa) : null;
-
-      document.getElementById('cgpaValue').textContent = val ? val.toFixed(2) : '—';
-      document.getElementById('cgpaRingLabel').textContent = val ? val.toFixed(1) : '—';
-
-      let sub = 'Enter grades to calculate';
-      if (val) {
-        if (val >= 3.67) sub = 'A territory 🏆';
-        else if (val >= 3.00) sub = 'B territory 👍';
-        else if (val >= 2.33) sub = 'C territory 📖';
-        else sub = 'Keep pushing 💪';
-      }
-      document.getElementById('cgpaSub').textContent = sub;
-
-      // Arc: 4.0 = full circle (263.9 circumference)
-      const arc = document.getElementById('cgpaArc');
-      if (arc) {
-        const offset = val ? 263.9 - (val / 4.0) * 263.9 : 263.9;
-        arc.style.strokeDashoffset = offset;
-      }
-    }
-
-    /* ── Clear helpers ── */
-    function clearSemester(year, semester) {
-      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
-      courseData[year][semester - 1].courses.forEach(c => { delete grades[`${year}-${semester}-${c.name}`]; });
-      localStorage.setItem('grades', JSON.stringify(grades));
-      switchYear(activeYear);
-    }
-
-    function clearYear() {
-      const grades = JSON.parse(localStorage.getItem('grades') || '{}');
-      courseData[5][0].courses.forEach(c => { delete grades[`5-1-${c.name}`]; });
-      localStorage.setItem('grades', JSON.stringify(grades));
-      switchYear(5);
-    }
-
-    function resetAllData() {
-      if (confirm('Reset all grades? This cannot be undone.')) {
-        localStorage.removeItem('grades');
-        localStorage.removeItem('firstYearSubmitted');
-        switchYear(activeYear);
-        updateGPA();
-      }
-    }
-
-    /* ── Dark mode ── */
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark');
-      const btn = document.querySelector('.icon-btn');
-      btn.textContent = document.body.classList.contains('dark') ? '☀️' : '🌙';
-      localStorage.setItem('darkMode', document.body.classList.contains('dark'));
-    }
-
-    /* ── Init ── */
-    window.onload = () => {
-      if (localStorage.getItem('darkMode') === 'true') {
-        document.body.classList.add('dark');
-        document.querySelector('.icon-btn').textContent = '☀️';
-      }
-      switchYear(1);
-    };
-  </script>
+window.onload=()=>{
+  if(localStorage.getItem('darkMode')==='true'){
+    document.body.classList.add('dark');
+    document.getElementById('dark-label').textContent='Light';
+    document.getElementById('dark-icon').innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  }
+  buildYearTabs();switchYear(1);
+};
+</script>
 </body>
 </html>
